@@ -78,7 +78,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, img: &mut RgbImage, world: &(dyn Hittable + Sync + Send)) {
+    pub fn render(&self, img: &mut RgbImage, world: &dyn Hittable) {
         let start = Instant::now();
 
         let progress_bar_style =

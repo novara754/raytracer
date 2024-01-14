@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
@@ -11,14 +12,19 @@ pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
     pub material: Arc<dyn Material + Sync + Send>,
+    bounding_box: Aabb,
 }
 
 impl Sphere {
     pub fn new(center: Vec3, radius: f64, material: Arc<dyn Material + Sync + Send>) -> Self {
+        let r_vec = Vec3(radius, radius, radius);
+        let bounding_box = Aabb::span_points(center - r_vec, center + r_vec);
+
         Self {
             center,
             radius,
             material,
+            bounding_box,
         }
     }
 }
@@ -54,5 +60,9 @@ impl Hittable for Sphere {
             outward_normal,
             self.material.clone(),
         ))
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        self.bounding_box
     }
 }

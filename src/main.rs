@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bvh::Bvh;
 use hittable::Hittable;
 use image::{ImageFormat, RgbImage};
 use material::{Dialectric, Lambertian, Material, Metal};
@@ -7,10 +8,11 @@ use util::{rand_f64, rand_vec3};
 use vec3::Color;
 
 use crate::camera::Camera;
-use crate::hittable::HittableList;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 
+mod aabb;
+mod bvh;
 mod camera;
 mod hittable;
 mod material;
@@ -20,8 +22,8 @@ mod util;
 mod vec3;
 
 fn main() {
-    let image_width = 1280;
-    let image_height = 720;
+    let image_width = 1920;
+    let image_height = 1080;
 
     let camera = Camera::new(
         image_width,
@@ -32,11 +34,11 @@ fn main() {
         20.0,
         10.0,
         0.6,
-        100,
+        200,
         50,
     );
 
-    let mut objects: Vec<Arc<dyn Hittable + Sync + Send>> = vec![];
+    let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
     let material_ground = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
     objects.push(Arc::new(Sphere::new(
@@ -80,7 +82,7 @@ fn main() {
     let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
     objects.push(Arc::new(Sphere::new(Vec3(4.0, 1.0, 0.0), 1.0, material3)));
 
-    let world = HittableList::from_slice(objects.as_slice());
+    let world = Bvh::new(objects.as_slice());
 
     let mut img = RgbImage::new(image_width, image_height);
     camera.render(&mut img, &world);

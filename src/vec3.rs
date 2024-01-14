@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, Index, Mul, Neg, Sub};
 
 use image::Rgb;
 
@@ -63,6 +63,19 @@ impl Vec3 {
     pub fn near_zero(self) -> bool {
         let e = f64::EPSILON;
         self.0 < e && self.1 < e && self.2 < e
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.0,
+            1 => &self.1,
+            2 => &self.2,
+            _ => panic!("invalid Vec3 index"),
+        }
     }
 }
 

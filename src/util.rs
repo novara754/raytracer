@@ -7,10 +7,16 @@ pub struct Interval(pub f64, pub f64);
 
 impl Interval {
     #[allow(unused)]
-    const EMPTY: Self = Interval(f64::INFINITY, f64::NEG_INFINITY);
+    pub const EMPTY: Self = Interval(f64::INFINITY, f64::NEG_INFINITY);
 
     #[allow(unused)]
-    const UNIVERSE: Self = Interval(f64::NEG_INFINITY, f64::INFINITY);
+    pub const UNIVERSE: Self = Interval(f64::NEG_INFINITY, f64::INFINITY);
+
+    pub fn combine(a: Interval, b: Interval) -> Self {
+        let min = a.0.min(b.0);
+        let max = a.1.max(b.1);
+        Interval(min, max)
+    }
 
     #[allow(unused)]
     pub fn contains(&self, value: f64) -> bool {
