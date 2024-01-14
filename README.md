@@ -55,9 +55,42 @@ For a debug build run `cargo build` in the project directory. For an optimized r
 build please run `cargo build --release`.
 The resulting binaries will be located in `./target/debug` and `./target/release` respectively.
 
-You can also use `cargo run` or `cargo run --release` to compile and run the program in one step.
+It is also possible to use `cargo run` or `cargo run --release` to compile and run the program in one step.
 
-Once execution is complete the program will generate an image with the rendered scene in the current working directory. 
+It is recommended to use the release build since it significantly speeds up the execution.
+
+The raytracer accepts a few command line arguments to change the behaviour, the following
+help output can be produced with `./raytracer_rs --help`:
+```
+Usage: raytracer_rs.exe [OPTIONS]
+
+Options:
+  -o, --output-filename <OUTPUT_FILENAME>
+          Name of the output image [default: out.png]
+  -w, --width <WIDTH>
+          Width of the output image [default: 1280]
+  -h, --height <HEIGHT>
+          Height of the output image [default: 720]
+      --fov <FOV>
+          Vertical field of view [default: 20]
+      --focus-distance <FOCUS_DISTANCE>
+          Distance of the focal point from the camera [default: 10]
+      --defocus-angle <DEFOCUS_ANGLE>
+          Determines the strength of the depth of field effect [default: 0.6]
+      --samples <SAMPLES>
+          Number of samples (rays) per pixel [default: 100]
+      --max-bounces <MAX_BOUNCES>
+          Maximum amount of times a ray can get hit and bounce from objects [default: 50]
+  -h, --help
+          Print help
+  -V, --version
+          Print version
+```
+
+To replicate the sample image the following command was used:
+```
+.\raytracer_rs -o sample.png -w 1920 -h 1080 --samples 200
+```
 
 ## License
 

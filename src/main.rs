@@ -1,6 +1,8 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use bvh::Bvh;
+use clap::Parser;
 use hittable::Hittable;
 use image::{ImageFormat, RgbImage};
 use material::{Dialectric, Lambertian, Material, Metal};
@@ -21,21 +23,56 @@ mod sphere;
 mod util;
 mod vec3;
 
+#[derive(Parser)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Name of the output image.
+    #[clap(short, long, default_value = "out.png")]
+    output_filename: PathBuf,
+
+    /// Width of the output image.
+    #[clap(short, long, default_value_t = 1280)]
+    width: u32,
+
+    /// Height of the output image.
+    #[clap(short, long, default_value_t = 720)]
+    height: u32,
+
+    /// Vertical field of view.
+    #[clap(long, default_value_t = 20.0)]
+    fov: f64,
+
+    /// Distance of the focal point from the camera.
+    #[clap(long, default_value_t = 10.0)]
+    focus_distance: f64,
+
+    /// Determines the strength of the depth of field effect.
+    #[clap(long, default_value_t = 0.6)]
+    defocus_angle: f64,
+
+    /// Number of samples (rays) per pixel.
+    #[clap(long, default_value_t = 100)]
+    samples: u32,
+
+    /// Maximum amount of times a ray can get hit and bounce from objects.
+    #[clap(long, default_value_t = 50)]
+    max_bounces: u32,
+}
+
 fn main() {
-    let image_width = 1920;
-    let image_height = 1080;
+    let args = Args::parse();
 
     let camera = Camera::new(
-        image_width,
-        image_height,
+        args.width,
+        args.height,
         Vec3(13.0, 2.0, 3.0),
         Vec3(0.0, 0.0, -1.0),
         Vec3(0.0, 1.0, 0.0),
-        20.0,
-        10.0,
-        0.6,
-        200,
-        50,
+        args.fov,
+        args.focus_distance,
+        args.defocus_angle,
+        args.samples,
+        args.max_bounces,
     );
 
     let mut objects: Vec<Arc<dyn Hittable>> = vec![];
@@ -84,8 +121,8 @@ fn main() {
 
     let world = Bvh::new(objects.as_slice());
 
-    let mut img = RgbImage::new(image_width, image_height);
+    let mut img = RgbImage::new(args.width, args.height);
     camera.render(&mut img, &world);
-    img.save_with_format("./out.png", ImageFormat::Png)
+    img.save_with_format(args.output_filename, ImageFormat::Png)
         .expect("failed to save output image");
 }
