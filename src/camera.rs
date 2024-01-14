@@ -1,5 +1,9 @@
+use std::time::Instant;
+
 use image::RgbImage;
+use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rand::random;
+use rayon::prelude::*;
 
 use crate::hittable::Hittable;
 use crate::material::ScatterResult;
@@ -32,6 +36,8 @@ impl Camera {
         v_fov: f64,
         focus_dist: f64,
         defocus_angle: f64,
+        samples_per_pixel: u32,
+        max_depth: u32,
     ) -> Self {
         let aspect_ratio = (width as f64) / (height as f64);
 
@@ -67,24 +73,49 @@ impl Camera {
             defocus_angle,
             defocus_disc_u,
             defocus_disc_v,
-            samples_per_pixel: 10,
-            max_depth: 100,
+            samples_per_pixel,
+            max_depth,
         }
     }
 
-    pub fn render(&self, img: &mut RgbImage, world: &dyn Hittable) {
+    pub fn render(&self, img: &mut RgbImage, world: &(dyn Hittable + Sync + Send)) {
+        let start = Instant::now();
+
+        let progress_bar_style =
+            ProgressStyle::with_template("[{elapsed_precise}] [{wide_bar:.}] {pos}/{len} ({eta})")
+                .unwrap();
+
+        let pixel_rows: Vec<_> = (0..self.height)
+            .into_par_iter()
+            .progress_with_style(progress_bar_style)
+            .map(|row| {
+                let pixel_row: Vec<_> = (0..self.width)
+                    .into_par_iter()
+                    .map(|col| {
+                        let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        for _ in 0..self.samples_per_pixel {
+                            let ray = self.get_ray(col, row);
+                            pixel_color += self.ray_color(&ray, 0, world);
+                        }
+                        let pixel_color = pixel_color / (self.samples_per_pixel as f64);
+                        linear_to_gamma(pixel_color)
+                    })
+                    .collect();
+
+                pixel_row
+            })
+            .collect();
+
         for y in 0..self.height {
             for x in 0..self.width {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..self.samples_per_pixel {
-                    let ray = self.get_ray(x, y);
-                    pixel_color += self.ray_color(&ray, 0, world);
-                }
-                let pixel_color = pixel_color / (self.samples_per_pixel as f64);
-                let gamma_corrected = linear_to_gamma(pixel_color);
-                img.put_pixel(x, y, gamma_corrected.into());
+                let pixel_color = pixel_rows[y as usize][x as usize];
+                img.put_pixel(x, y, pixel_color.into());
             }
         }
+
+        let end = Instant::now();
+
+        eprintln!("Time elapsed (seconds): {}", (end - start).as_secs_f64());
     }
 
     fn ray_color(&self, ray: &Ray, depth: u32, world: &dyn Hittable) -> Color {

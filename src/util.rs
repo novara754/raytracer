@@ -35,7 +35,7 @@ impl Interval {
 }
 
 pub fn rand_f64(min: f64, max: f64) -> f64 {
-    random::<f64>() * (max - min) + max
+    random::<f64>() * (max - min) + min
 }
 
 #[allow(unused)]

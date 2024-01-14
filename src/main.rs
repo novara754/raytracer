@@ -1,7 +1,9 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
+use hittable::Hittable;
 use image::{ImageFormat, RgbImage};
-use material::{Dialectric, Lambertian, Metal};
+use material::{Dialectric, Lambertian, Material, Metal};
+use util::{rand_f64, rand_vec3};
 use vec3::Color;
 
 use crate::camera::Camera;
@@ -18,52 +20,67 @@ mod util;
 mod vec3;
 
 fn main() {
-    let image_width = 640;
-    let image_height = 480;
+    let image_width = 1280;
+    let image_height = 720;
 
     let camera = Camera::new(
         image_width,
         image_height,
-        Vec3(-2.0, 2.0, 1.0),
+        Vec3(13.0, 2.0, 3.0),
         Vec3(0.0, 0.0, -1.0),
         Vec3(0.0, 1.0, 0.0),
         20.0,
-        3.4,
         10.0,
+        0.6,
+        100,
+        50,
     );
 
-    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
-    let material_left = Rc::new(Dialectric::new(1.5));
-    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.0));
+    let mut objects: Vec<Arc<dyn Hittable + Sync + Send>> = vec![];
 
-    let world = HittableList::from_slice(&[
-        Rc::new(Sphere::new(
-            Vec3(0.0, -100.5, -1.0),
-            100.0,
-            material_ground.clone(),
-        )),
-        Rc::new(Sphere::new(
-            Vec3(0.0, 0.0, -1.0),
-            0.5,
-            material_center.clone(),
-        )),
-        Rc::new(Sphere::new(
-            Vec3(-1.0, 0.0, -1.0),
-            0.5,
-            material_left.clone(),
-        )),
-        Rc::new(Sphere::new(
-            Vec3(-1.0, 0.0, -1.0),
-            -0.4,
-            material_left.clone(),
-        )),
-        Rc::new(Sphere::new(
-            Vec3(1.0, 0.0, -1.0),
-            0.5,
-            material_right.clone(),
-        )),
-    ]);
+    let material_ground = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    objects.push(Arc::new(Sphere::new(
+        Vec3(0.0, -1000.0, 0.0),
+        1000.0,
+        material_ground,
+    )));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rand_f64(0.0, 1.0);
+            let center = Vec3(
+                a as f64 + 0.9 * rand_f64(0.0, 1.0),
+                0.2,
+                b as f64 + 0.9 * rand_f64(0.0, 1.0),
+            );
+
+            if (center - Vec3(4.0, 0.2, 0.0)).length() > 0.9 {
+                let mat: Arc<dyn Material + Sync + Send> = if choose_mat < 0.8 {
+                    let albedo = rand_vec3(0.0, 1.0) * rand_vec3(0.0, 1.0);
+                    Arc::new(Lambertian::new(albedo))
+                } else if choose_mat < 0.95 {
+                    let albedo = rand_vec3(0.5, 1.0);
+                    let fuzz = rand_f64(0.0, 0.5);
+                    Arc::new(Metal::new(albedo, fuzz))
+                } else {
+                    Arc::new(Dialectric::new(1.5))
+                };
+
+                objects.push(Arc::new(Sphere::new(center, 0.2, mat)));
+            }
+        }
+    }
+
+    let material1 = Arc::new(Dialectric::new(1.5));
+    objects.push(Arc::new(Sphere::new(Vec3(0.0, 1.0, 0.0), 1.0, material1)));
+
+    let material2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    objects.push(Arc::new(Sphere::new(Vec3(-4.0, 1.0, 0.0), 1.0, material2)));
+
+    let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    objects.push(Arc::new(Sphere::new(Vec3(4.0, 1.0, 0.0), 1.0, material3)));
+
+    let world = HittableList::from_slice(objects.as_slice());
 
     let mut img = RgbImage::new(image_width, image_height);
     camera.render(&mut img, &world);
