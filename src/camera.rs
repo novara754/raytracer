@@ -1,7 +1,10 @@
 use image::RgbImage;
+use rand::random;
 
 use crate::hittable::Hittable;
+use crate::material::ScatterResult;
 use crate::ray::Ray;
+use crate::util::{linear_to_gamma, Interval};
 use crate::vec3::{Color, Vec3};
 
 pub struct Camera {
@@ -11,6 +14,8 @@ pub struct Camera {
     pixel00_loc: Vec3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
+    samples_per_pixel: u32,
+    max_depth: u32,
 }
 
 impl Camera {
@@ -40,36 +45,54 @@ impl Camera {
             pixel00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            samples_per_pixel: 10,
+            max_depth: 50,
         }
     }
 
     pub fn render(&self, img: &mut RgbImage, world: &dyn Hittable) {
         for y in 0..self.height {
             for x in 0..self.width {
-                let pixel_center = self.pixel00_loc
-                    + (x as f64 * self.pixel_delta_u)
-                    + (y as f64 * self.pixel_delta_v);
-                let ray_direction = pixel_center - self.center;
-                let ray = Ray::new(self.center, ray_direction);
-                let pixel_color = self.ray_color(&ray, world);
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                for _ in 0..self.samples_per_pixel {
+                    let pixel_center = self.pixel00_loc
+                        + (x as f64 * self.pixel_delta_u)
+                        + (y as f64 * self.pixel_delta_v);
 
-                img.put_pixel(x, y, pixel_color.into());
+                    let px = -0.5 + random::<f64>();
+                    let py = -0.5 + random::<f64>();
+
+                    let pixel_sample =
+                        pixel_center + (px * self.pixel_delta_u) + (py * self.pixel_delta_v);
+
+                    let ray_direction = pixel_sample - self.center;
+                    let ray = Ray::new(self.center, ray_direction);
+
+                    pixel_color += self.ray_color(&ray, 0, world);
+                }
+                let pixel_color = pixel_color / (self.samples_per_pixel as f64);
+                let gamma_corrected = linear_to_gamma(pixel_color);
+                img.put_pixel(x, y, gamma_corrected.into());
             }
         }
     }
 
-    fn ray_color(&self, ray: &Ray, world: &dyn Hittable) -> Color {
-        if let Some(rec) = world.hit(ray, 0.0..=f64::INFINITY) {
-            return 0.5
-                * Color::new(
-                    rec.normal.x() + 1.0,
-                    rec.normal.y() + 1.0,
-                    rec.normal.z() + 1.0,
-                );
+    fn ray_color(&self, ray: &Ray, depth: u32, world: &dyn Hittable) -> Color {
+        if depth >= self.max_depth {
+            return Color::new(0.0, 0.0, 0.0);
+        }
+
+        if let Some(rec) = world.hit(ray, Interval(0.001, f64::INFINITY)) {
+            if let Some(ScatterResult { ray, attenuation }) = rec.material.scatter(ray, &rec) {
+                return attenuation * self.ray_color(&ray, depth + 1, world);
+            } else {
+                Color::new(0.0, 0.0, 0.0);
+            }
         }
 
         let unit_direction = ray.direction.normalize();
         let a = 0.5 * (unit_direction.y() + 1.0);
-        return (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0);
+
+        (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
     }
 }

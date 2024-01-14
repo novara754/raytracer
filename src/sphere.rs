@@ -1,23 +1,30 @@
-use std::ops::RangeInclusive;
+use std::rc::Rc;
 
 use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
+use crate::util::Interval;
 use crate::vec3::Vec3;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
+    pub material: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
-        Self { center, radius }
+    pub fn new(center: Vec3, radius: f64, material: Rc<dyn Material>) -> Self {
+        Self {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray, allowed_t: RangeInclusive<f64>) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, allowed_t: Interval) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(ray.direction);
@@ -31,9 +38,9 @@ impl Hittable for Sphere {
         let sqrt_d = discriminant.sqrt();
 
         let mut root = (-half_b - sqrt_d) / a;
-        if !allowed_t.contains(&root) {
+        if !allowed_t.surrounds(root) {
             root = (-half_b + sqrt_d) / a;
-            if !allowed_t.contains(&root) {
+            if !allowed_t.surrounds(root) {
                 return None;
             }
         }
@@ -45,6 +52,7 @@ impl Hittable for Sphere {
             root,
             position,
             outward_normal,
+            self.material.clone(),
         ))
     }
 }

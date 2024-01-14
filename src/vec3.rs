@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub};
 
 use image::Rgb;
 
@@ -59,6 +59,11 @@ impl Vec3 {
     pub fn normalize(self) -> Self {
         self / self.length()
     }
+
+    pub fn near_zero(self) -> bool {
+        let e = f64::EPSILON;
+        self.0 < e && self.1 < e && self.2 < e
+    }
 }
 
 impl Neg for Vec3 {
@@ -74,6 +79,12 @@ impl Add<Vec3> for Vec3 {
 
     fn add(self, rhs: Vec3) -> Self::Output {
         Vec3(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
+    }
+}
+
+impl AddAssign<Vec3> for Vec3 {
+    fn add_assign(&mut self, rhs: Vec3) {
+        *self = *self + rhs;
     }
 }
 
@@ -117,12 +128,12 @@ impl Div<f64> for Vec3 {
     }
 }
 
-impl Into<Rgb<u8>> for Color {
-    fn into(self) -> Rgb<u8> {
+impl From<Color> for Rgb<u8> {
+    fn from(val: Color) -> Self {
         Rgb([
-            (self.0 * 255.0) as _,
-            (self.1 * 255.0) as _,
-            (self.2 * 255.0) as _,
+            (val.0 * 255.0) as _,
+            (val.1 * 255.0) as _,
+            (val.2 * 255.0) as _,
         ])
     }
 }

@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 image = { version = "0.24.8", features = ["png"] }
+rand = "0.8.5"

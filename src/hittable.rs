@@ -1,19 +1,27 @@
-use std::ops::RangeInclusive;
 use std::rc::Rc;
 
+use crate::material::Material;
 use crate::ray::Ray;
+use crate::util::Interval;
 use crate::vec3::Vec3;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub position: Vec3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub material: Rc<dyn Material>,
 }
 
 impl HitRecord {
-    pub fn with_face_normal(ray: Ray, t: f64, position: Vec3, outward_normal: Vec3) -> Self {
+    pub fn with_face_normal(
+        ray: Ray,
+        t: f64,
+        position: Vec3,
+        outward_normal: Vec3,
+        material: Rc<dyn Material>,
+    ) -> Self {
         let front_face = ray.direction.dot(outward_normal) < 0.0;
         Self {
             position,
@@ -24,12 +32,13 @@ impl HitRecord {
             },
             t,
             front_face,
+            material,
         }
     }
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, allowed_t: RangeInclusive<f64>) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, allowed_t: Interval) -> Option<HitRecord>;
 }
 
 #[derive(Default)]
@@ -51,13 +60,13 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, ray: &Ray, allowed_t: RangeInclusive<f64>) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, allowed_t: Interval) -> Option<HitRecord> {
         let mut maybe_rec = None;
-        let min = *allowed_t.start();
-        let mut closest = *allowed_t.end();
+        let min = allowed_t.0;
+        let mut closest = allowed_t.1;
 
         for object in &self.objects {
-            if let Some(rec) = object.hit(ray, min..=closest) {
+            if let Some(rec) = object.hit(ray, Interval(min, closest)) {
                 closest = rec.t;
                 maybe_rec = Some(rec);
             }
