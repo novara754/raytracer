@@ -67,9 +67,9 @@ Usage: raytracer_rs.exe [OPTIONS]
 Options:
   -o, --output-filename <OUTPUT_FILENAME>
           Name of the output image [default: out.png]
-  -w, --width <WIDTH>
+      --width <WIDTH>
           Width of the output image [default: 1280]
-  -h, --height <HEIGHT>
+      --height <HEIGHT>
           Height of the output image [default: 720]
       --fov <FOV>
           Vertical field of view [default: 20]
@@ -89,7 +89,7 @@ Options:
 
 To replicate the sample image the following command was used:
 ```
-.\raytracer_rs -o sample.png -w 1920 -h 1080 --samples 200
+.\raytracer_rs -o sample.png -width 1920 -height 1080 --samples 200
 ```
 
 ## License

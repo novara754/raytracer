@@ -31,11 +31,11 @@ struct Args {
     output_filename: PathBuf,
 
     /// Width of the output image.
-    #[clap(short, long, default_value_t = 1280)]
+    #[clap(long, default_value_t = 1280)]
     width: u32,
 
     /// Height of the output image.
-    #[clap(short, long, default_value_t = 720)]
+    #[clap(long, default_value_t = 720)]
     height: u32,
 
     /// Vertical field of view.
