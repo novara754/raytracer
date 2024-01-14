@@ -54,6 +54,15 @@ pub fn rand_unit_vec3() -> Vec3 {
     Vec3(x, y, z)
 }
 
+pub fn rand_unit_disc_vec3() -> Vec3 {
+    let phi = rand_f64(0.0, 2.0 * std::f64::consts::PI);
+
+    let x = phi.cos();
+    let y = phi.sin();
+
+    Vec3(x, y, 0.0)
+}
+
 #[allow(unused)]
 pub fn rand_on_hemisphere(normal: Vec3) -> Vec3 {
     let on_unit_sphere = rand_unit_vec3();
