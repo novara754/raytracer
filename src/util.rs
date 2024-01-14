@@ -84,3 +84,7 @@ pub fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
     r0 *= r0;
     r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }
+
+pub fn deg2rad(deg: f64) -> f64 {
+    deg / 180.0 * std::f64::consts::PI
+}

@@ -21,7 +21,14 @@ fn main() {
     let image_width = 640;
     let image_height = 480;
 
-    let camera = Camera::new(image_width, image_height);
+    let camera = Camera::new(
+        image_width,
+        image_height,
+        Vec3(-2.0, 2.0, 1.0),
+        Vec3(0.0, 0.0, -1.0),
+        Vec3(0.0, 1.0, 0.0),
+        20.0,
+    );
 
     let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
     let material_center = Rc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));

@@ -4,11 +4,11 @@ use rand::random;
 use crate::hittable::Hittable;
 use crate::material::ScatterResult;
 use crate::ray::Ray;
-use crate::util::{linear_to_gamma, Interval};
+use crate::util::{deg2rad, linear_to_gamma, Interval};
 use crate::vec3::{Color, Vec3};
 
 pub struct Camera {
-    center: Vec3,
+    eye: Vec3,
     width: u32,
     height: u32,
     pixel00_loc: Vec3,
@@ -19,27 +19,30 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new(width: u32, height: u32, eye: Vec3, look_at: Vec3, up: Vec3, v_fov: f64) -> Self {
         let aspect_ratio = (width as f64) / (height as f64);
 
-        let viewport_width = 2.0;
-        let viewport_height = viewport_width / aspect_ratio;
+        let w = (eye - look_at).normalize();
+        let u = up.cross(w).normalize();
+        let v = w.cross(u);
 
-        let focal_length = 0.5;
+        let focal_length = (eye - look_at).length();
+        let theta = deg2rad(v_fov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
+        let viewport_width = viewport_height * aspect_ratio;
 
-        let viewport_u = Vec3(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3(0.0, -viewport_height, 0.0);
+        let viewport_u = viewport_width * u;
+        let viewport_v = viewport_height * -v;
 
         let pixel_delta_u = viewport_u / (width as f64);
         let pixel_delta_v = viewport_v / (height as f64);
 
-        let center = Vec3(0.0, 0.0, 0.0);
-        let viewport_upper_left =
-            center - Vec3(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+        let viewport_upper_left = eye - (focal_length * w) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
         Self {
-            center,
+            eye,
             width,
             height,
             pixel00_loc,
@@ -65,8 +68,8 @@ impl Camera {
                     let pixel_sample =
                         pixel_center + (px * self.pixel_delta_u) + (py * self.pixel_delta_v);
 
-                    let ray_direction = pixel_sample - self.center;
-                    let ray = Ray::new(self.center, ray_direction);
+                    let ray_direction = pixel_sample - self.eye;
+                    let ray = Ray::new(self.eye, ray_direction);
 
                     pixel_color += self.ray_color(&ray, 0, world);
                 }
