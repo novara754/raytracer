@@ -25,7 +25,7 @@ impl Camera {
         let viewport_width = 2.0;
         let viewport_height = viewport_width / aspect_ratio;
 
-        let focal_length = 1.0;
+        let focal_length = 0.5;
 
         let viewport_u = Vec3(viewport_width, 0.0, 0.0);
         let viewport_v = Vec3(0.0, -viewport_height, 0.0);
@@ -46,7 +46,7 @@ impl Camera {
             pixel_delta_u,
             pixel_delta_v,
             samples_per_pixel: 10,
-            max_depth: 50,
+            max_depth: 100,
         }
     }
 

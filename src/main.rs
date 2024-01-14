@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use image::{ImageFormat, RgbImage};
-use material::{Lambertian, Metal};
+use material::{Dialectric, Lambertian, Metal};
 use vec3::Color;
 
 use crate::camera::Camera;
@@ -24,9 +24,9 @@ fn main() {
     let camera = Camera::new(image_width, image_height);
 
     let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
-    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
+    let material_left = Rc::new(Dialectric::new(1.5));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.0));
 
     let world = HittableList::from_slice(&[
         Rc::new(Sphere::new(
@@ -42,6 +42,11 @@ fn main() {
         Rc::new(Sphere::new(
             Vec3(-1.0, 0.0, -1.0),
             0.5,
+            material_left.clone(),
+        )),
+        Rc::new(Sphere::new(
+            Vec3(-1.0, 0.0, -1.0),
+            -0.4,
             material_left.clone(),
         )),
         Rc::new(Sphere::new(

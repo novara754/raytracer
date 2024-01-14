@@ -71,3 +71,16 @@ pub fn linear_to_gamma(color: Color) -> Color {
 pub fn reflect(v: Vec3, normal: Vec3) -> Vec3 {
     v - 2.0 * v.dot(normal) * normal
 }
+
+pub fn refract(v: Vec3, normal: Vec3, ratio: f64) -> Vec3 {
+    let cos_theta = (-v).dot(normal).min(1.0);
+    let r_out_perp = ratio * (v + cos_theta * normal);
+    let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * normal;
+    r_out_perp + r_out_parallel
+}
+
+pub fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
+    let mut r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+    r0 *= r0;
+    r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
+}
