@@ -11,12 +11,12 @@ use crate::vec3::Vec3;
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
-    pub material: Arc<dyn Material + Sync + Send>,
+    pub material: Arc<dyn Material>,
     bounding_box: Aabb,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64, material: Arc<dyn Material + Sync + Send>) -> Self {
+    pub fn new(center: Vec3, radius: f64, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3(radius, radius, radius);
         let bounding_box = Aabb::span_points(center - r_vec, center + r_vec);
 

@@ -94,7 +94,7 @@ fn main() {
             );
 
             if (center - Vec3(4.0, 0.2, 0.0)).length() > 0.9 {
-                let mat: Arc<dyn Material + Sync + Send> = if choose_mat < 0.8 {
+                let mat: Arc<dyn Material> = if choose_mat < 0.8 {
                     let albedo = rand_vec3(0.0, 1.0) * rand_vec3(0.0, 1.0);
                     Arc::new(Lambertian::new(albedo))
                 } else if choose_mat < 0.95 {
