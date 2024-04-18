@@ -1,5 +1,6 @@
 use clap::Parser;
 use image::{ImageFormat, RgbImage};
+use quad::Quad;
 use std::path::PathBuf;
 use std::sync::Arc;
 use texture::ImageTexture;
@@ -20,6 +21,7 @@ mod bvh;
 mod camera;
 mod hittable;
 mod material;
+mod quad;
 mod ray;
 mod sphere;
 mod texture;
@@ -31,6 +33,7 @@ enum Scene {
     BouncingSpheres,
     CheckeredSpheres,
     Earth,
+    Quads,
 }
 
 impl std::fmt::Display for Scene {
@@ -39,6 +42,7 @@ impl std::fmt::Display for Scene {
             Scene::BouncingSpheres => write!(f, "bouncing-spheres"),
             Scene::CheckeredSpheres => write!(f, "checkered-spheres"),
             Scene::Earth => write!(f, "earth"),
+            Scene::Quads => write!(f, "quads"),
         }
     }
 }
@@ -228,6 +232,62 @@ fn earth(args: &Args) -> (Camera, Bvh) {
     (camera, Bvh::new(objects.as_slice()))
 }
 
+fn quads(args: &Args) -> (Camera, Bvh) {
+    let camera = Camera::new(
+        args.width,
+        args.height,
+        Vec3(0.0, 0.0, 9.0),
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(0.0, 1.0, 0.0),
+        args.fov,
+        args.focus_distance,
+        args.defocus_angle,
+        args.samples,
+        args.max_bounces,
+    );
+
+    let mut objects: Vec<Arc<dyn Hittable>> = vec![];
+
+    let red = Arc::new(Lambertian::from_color(Color::new(1.0, 0.2, 0.2)));
+    let green = Arc::new(Lambertian::from_color(Color::new(0.2, 1.0, 0.2)));
+    let blue = Arc::new(Lambertian::from_color(Color::new(0.2, 0.2, 1.0)));
+    let orange = Arc::new(Lambertian::from_color(Color::new(1.0, 0.5, 0.0)));
+    let teal = Arc::new(Lambertian::from_color(Color::new(0.2, 0.8, 0.8)));
+
+    objects.push(Arc::new(Quad::new(
+        Vec3(-3.0, -2.0, 5.0),
+        Vec3(0.0, 0.0, -4.0),
+        Vec3(0.0, 4.0, 0.0),
+        red,
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(-2.0, -2.0, 0.0),
+        Vec3(4.0, 0.0, 0.0),
+        Vec3(0.0, 4.0, 0.0),
+        green,
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(3.0, -2.0, 1.0),
+        Vec3(0.0, 0.0, 4.0),
+        Vec3(0.0, 4.0, 0.0),
+        blue,
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(-2.0, 3.0, 1.0),
+        Vec3(4.0, 0.0, 0.0),
+        Vec3(0.0, 0.0, 4.0),
+        orange,
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(-2.0, -3.0, 5.0),
+        Vec3(4.0, 0.0, 0.0),
+        Vec3(0.0, 0.0, -4.0),
+        teal,
+    )));
+
+    (camera, Bvh::new(objects.as_slice()))
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -235,6 +295,7 @@ fn main() {
         Scene::BouncingSpheres => bouncing_spheres(&args),
         Scene::CheckeredSpheres => checkered_spheres(&args),
         Scene::Earth => earth(&args),
+        Scene::Quads => quads(&args),
     };
 
     let mut img = RgbImage::new(args.width, args.height);

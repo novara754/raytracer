@@ -38,6 +38,15 @@ impl Interval {
             value
         }
     }
+
+    pub fn size(&self) -> f64 {
+        self.1 - self.0
+    }
+
+    pub fn expand(&mut self, size: f64) {
+        self.0 -= size / 2.0;
+        self.1 += size / 2.0;
+    }
 }
 
 pub fn rand_f64(min: f64, max: f64) -> f64 {

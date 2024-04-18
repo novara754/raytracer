@@ -19,15 +19,19 @@ impl Aabb {
 
     #[allow(unused)]
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        Self { x, y, z }
+        let mut s = Self { x, y, z };
+        s.ensure_minimum_extents();
+        s
     }
 
     pub fn span_points(a: Vec3, b: Vec3) -> Self {
-        Self {
+        let mut s = Self {
             x: Interval(a.x().min(b.x()), a.x().max(b.x())),
             y: Interval(a.y().min(b.y()), a.y().max(b.y())),
             z: Interval(a.z().min(b.z()), a.z().max(b.z())),
-        }
+        };
+        s.ensure_minimum_extents();
+        s
     }
 
     pub fn combine(a: Aabb, b: Aabb) -> Self {
@@ -64,5 +68,18 @@ impl Aabb {
         }
 
         true
+    }
+
+    fn ensure_minimum_extents(&mut self) {
+        let minimum = 0.0001;
+        if self.x.size() < minimum {
+            self.x.expand(minimum);
+        }
+        if self.y.size() < minimum {
+            self.y.expand(minimum);
+        }
+        if self.z.size() < minimum {
+            self.z.expand(minimum);
+        }
     }
 }
