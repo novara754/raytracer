@@ -37,6 +37,7 @@ enum Scene {
     Quads,
     SimpleLight,
     BouncingSpheresWithLight,
+    EmptyCornellBox,
 }
 
 impl std::fmt::Display for Scene {
@@ -48,6 +49,7 @@ impl std::fmt::Display for Scene {
             Scene::Quads => write!(f, "quads"),
             Scene::SimpleLight => write!(f, "simple-light"),
             Scene::BouncingSpheresWithLight => write!(f, "bouncing-spheres-with-light"),
+            Scene::EmptyCornellBox => write!(f, "empty-cornell-box"),
         }
     }
 }
@@ -421,6 +423,68 @@ fn bouncing_spheres_with_light(args: &Args) -> (Camera, Bvh) {
     (camera, Bvh::new(objects.as_slice()))
 }
 
+fn empty_cornell_box(args: &Args) -> (Camera, Bvh) {
+    let mut camera = Camera::new(
+        args.width,
+        args.height,
+        Vec3(278.0, 278.0, -800.0),
+        Vec3(278.0, 278.0, 0.0),
+        Vec3(0.0, 1.0, 0.0),
+        40.0, // args.fov,
+        args.focus_distance,
+        0.0, // args.defocus_angle,
+        args.samples,
+        args.max_bounces,
+    );
+    camera.background_color = Some(Color::new(0.0, 0.0, 0.0));
+
+    let mut objects: Vec<Arc<dyn Hittable>> = vec![];
+
+    let red = Arc::new(Lambertian::from_color(Color::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::from_color(Color::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::from_color(Color::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(15.0, 15.0, 15.0)));
+
+    objects.push(Arc::new(Quad::new(
+        Vec3(555.0, 0.0, 0.0),
+        Vec3(0.0, 555.0, 0.0),
+        Vec3(0.0, 0.0, 555.0),
+        green,
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(0.0, 555.0, 0.0),
+        Vec3(0.0, 0.0, 555.0),
+        red,
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(343.0, 554.0, 332.0),
+        Vec3(-130.0, 0.0, 0.0),
+        Vec3(0.0, 0.0, -105.0),
+        light,
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(555.0, 0.0, 0.0),
+        Vec3(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(555.0, 555.0, 555.0),
+        Vec3(-555.0, 0.0, 0.0),
+        Vec3(0.0, 0.0, -555.0),
+        white.clone(),
+    )));
+    objects.push(Arc::new(Quad::new(
+        Vec3(0.0, 0.0, 555.0),
+        Vec3(555.0, 0.0, 0.0),
+        Vec3(0.0, 555.0, 0.0),
+        white,
+    )));
+
+    (camera, Bvh::new(objects.as_slice()))
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -431,6 +495,7 @@ fn main() {
         Scene::Quads => quads(&args),
         Scene::SimpleLight => simple_light(&args),
         Scene::BouncingSpheresWithLight => bouncing_spheres_with_light(&args),
+        Scene::EmptyCornellBox => empty_cornell_box(&args),
     };
 
     let mut img = RgbImage::new(args.width, args.height);
