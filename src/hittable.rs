@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::aabb::Aabb;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::texture::TexCoord;
 use crate::util::Interval;
 use crate::vec3::Vec3;
 
@@ -11,6 +12,7 @@ pub struct HitRecord {
     pub position: Vec3,
     pub normal: Vec3,
     pub t: f64,
+    pub uv: TexCoord,
     pub front_face: bool,
     pub material: Arc<dyn Material>,
 }
@@ -20,6 +22,7 @@ impl HitRecord {
         ray: Ray,
         t: f64,
         position: Vec3,
+        uv: TexCoord,
         outward_normal: Vec3,
         material: Arc<dyn Material>,
     ) -> Self {
@@ -32,6 +35,7 @@ impl HitRecord {
                 -outward_normal
             },
             t,
+            uv,
             front_face,
             material,
         }

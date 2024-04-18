@@ -1,17 +1,19 @@
+use clap::Parser;
+use image::{ImageFormat, RgbImage};
 use std::path::PathBuf;
 use std::sync::Arc;
+use texture::ImageTexture;
 
-use bvh::Bvh;
-use clap::Parser;
-use hittable::Hittable;
-use image::{ImageFormat, RgbImage};
-use material::{Dialectric, Lambertian, Material, Metal};
-use util::{rand_f64, rand_vec3};
-use vec3::Color;
-
-use crate::camera::Camera;
-use crate::sphere::Sphere;
-use crate::vec3::Vec3;
+use crate::{
+    bvh::Bvh,
+    camera::Camera,
+    hittable::Hittable,
+    material::{Dialectric, Lambertian, Material, Metal},
+    sphere::Sphere,
+    texture::CheckerTexture,
+    util::{rand_f64, rand_vec3},
+    vec3::{Color, Vec3},
+};
 
 mod aabb;
 mod bvh;
@@ -20,8 +22,26 @@ mod hittable;
 mod material;
 mod ray;
 mod sphere;
+mod texture;
 mod util;
 mod vec3;
+
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+enum Scene {
+    BouncingSpheres,
+    CheckeredSpheres,
+    Earth,
+}
+
+impl std::fmt::Display for Scene {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Scene::BouncingSpheres => write!(f, "bouncing-spheres"),
+            Scene::CheckeredSpheres => write!(f, "checkered-spheres"),
+            Scene::Earth => write!(f, "earth"),
+        }
+    }
+}
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -57,11 +77,13 @@ struct Args {
     /// Maximum amount of times a ray can get hit and bounce from objects.
     #[clap(long, default_value_t = 50)]
     max_bounces: u32,
+
+    /// Selects which scenes to render
+    #[clap(long, default_value_t = Scene::BouncingSpheres)]
+    scene: Scene,
 }
 
-fn main() {
-    let args = Args::parse();
-
+fn bouncing_spheres(args: &Args) -> (Camera, Bvh) {
     let camera = Camera::new(
         args.width,
         args.height,
@@ -77,7 +99,12 @@ fn main() {
 
     let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
-    let material_ground = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let checker_texture = Arc::new(CheckerTexture::from_colors(
+        0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    let material_ground = Arc::new(Lambertian::new(checker_texture));
     objects.push(Arc::new(Sphere::stationary(
         Vec3(0.0, -1000.0, 0.0),
         1000.0,
@@ -96,7 +123,7 @@ fn main() {
             if (start_center - Vec3(4.0, 0.2, 0.0)).length() > 0.9 {
                 let mat: Arc<dyn Material> = if choose_mat < 0.8 {
                     let albedo = rand_vec3(0.0, 1.0) * rand_vec3(0.0, 1.0);
-                    Arc::new(Lambertian::new(albedo))
+                    Arc::new(Lambertian::from_color(albedo))
                 } else if choose_mat < 0.95 {
                     let albedo = rand_vec3(0.5, 1.0);
                     let fuzz = rand_f64(0.0, 0.5);
@@ -118,7 +145,7 @@ fn main() {
         material1,
     )));
 
-    let material2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    let material2 = Arc::new(Lambertian::from_color(Color::new(0.4, 0.2, 0.1)));
     objects.push(Arc::new(Sphere::stationary(
         Vec3(-4.0, 1.0, 0.0),
         1.0,
@@ -132,7 +159,83 @@ fn main() {
         material3,
     )));
 
-    let world = Bvh::new(objects.as_slice());
+    (camera, Bvh::new(objects.as_slice()))
+}
+
+fn checkered_spheres(args: &Args) -> (Camera, Bvh) {
+    let camera = Camera::new(
+        args.width,
+        args.height,
+        Vec3(13.0, 2.0, 3.0),
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(0.0, 1.0, 0.0),
+        args.fov,
+        args.focus_distance,
+        args.defocus_angle,
+        args.samples,
+        args.max_bounces,
+    );
+
+    let mut objects: Vec<Arc<dyn Hittable>> = vec![];
+
+    let checker_texture = Arc::new(CheckerTexture::from_colors(
+        0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    let material = Arc::new(Lambertian::new(checker_texture));
+
+    objects.push(Arc::new(Sphere::stationary(
+        Vec3(0.0, -10.0, 0.0),
+        10.0,
+        material.clone(),
+    )));
+    objects.push(Arc::new(Sphere::stationary(
+        Vec3(0.0, 10.0, 0.0),
+        10.0,
+        material,
+    )));
+
+    (camera, Bvh::new(objects.as_slice()))
+}
+
+fn earth(args: &Args) -> (Camera, Bvh) {
+    let camera = Camera::new(
+        args.width,
+        args.height,
+        Vec3(0.0, 0.0, 12.0),
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(0.0, 1.0, 0.0),
+        args.fov,
+        args.focus_distance,
+        args.defocus_angle,
+        args.samples,
+        args.max_bounces,
+    );
+
+    let mut objects: Vec<Arc<dyn Hittable>> = vec![];
+
+    let earthmap = image::open("./assets/earthmap.jpg").unwrap().into_rgb8();
+    let img_texture = Arc::new(ImageTexture::new(earthmap));
+    let material = Arc::new(Lambertian::new(img_texture));
+
+    objects.push(Arc::new(Sphere::stationary(
+        Vec3(0.0, 0.0, 0.0),
+        2.0,
+        material.clone(),
+    )));
+
+    (camera, Bvh::new(objects.as_slice()))
+}
+
+fn main() {
+    let args = Args::parse();
+
+    let (camera, world) = match args.scene {
+        Scene::BouncingSpheres => bouncing_spheres(&args),
+        Scene::CheckeredSpheres => checkered_spheres(&args),
+        Scene::Earth => earth(&args),
+    };
 
     let mut img = RgbImage::new(args.width, args.height);
     camera.render(&mut img, &world);

@@ -4,6 +4,7 @@ use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::texture::TexCoord;
 use crate::util::Interval;
 use crate::vec3::Vec3;
 
@@ -54,6 +55,15 @@ impl Sphere {
     pub fn get_center(&self, time: f64) -> Vec3 {
         self.start_center + self.move_dir * time
     }
+
+    pub fn get_uv_for_point(point: Vec3) -> TexCoord {
+        let pi = std::f64::consts::PI;
+
+        let theta = f64::acos(-point.y());
+        let phi = f64::atan2(-point.z(), point.x()) + pi;
+
+        TexCoord::new(phi / (2.0 * pi), theta / pi)
+    }
 }
 
 impl Hittable for Sphere {
@@ -86,6 +96,7 @@ impl Hittable for Sphere {
             *ray,
             root,
             position,
+            Sphere::get_uv_for_point(outward_normal),
             outward_normal,
             self.material.clone(),
         ))
@@ -93,5 +104,43 @@ impl Hittable for Sphere {
 
     fn bounding_box(&self) -> Aabb {
         self.bounding_box
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{sphere::Sphere, texture::TexCoord, vec3::Vec3};
+
+    #[test]
+    fn get_uv_for_point() {
+        assert_eq!(
+            Sphere::get_uv_for_point(Vec3(1.0, 0.0, 0.0)),
+            TexCoord::new(0.5, 0.5)
+        );
+
+        assert_eq!(
+            Sphere::get_uv_for_point(Vec3(0.0, 1.0, 0.0)),
+            TexCoord::new(0.5, 1.0)
+        );
+
+        assert_eq!(
+            Sphere::get_uv_for_point(Vec3(0.0, 0.0, 1.0)),
+            TexCoord::new(0.25, 0.5)
+        );
+
+        assert_eq!(
+            Sphere::get_uv_for_point(Vec3(-1.0, 0.0, 0.0)),
+            TexCoord::new(0.0, 0.5)
+        );
+
+        assert_eq!(
+            Sphere::get_uv_for_point(Vec3(0.0, -1.0, 0.0)),
+            TexCoord::new(0.5, 0.0)
+        );
+
+        assert_eq!(
+            Sphere::get_uv_for_point(Vec3(0.0, 0.0, -1.0)),
+            TexCoord::new(0.75, 0.5)
+        );
     }
 }
