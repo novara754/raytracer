@@ -23,6 +23,7 @@ pub struct Camera {
     defocus_disc_v: Vec3,
     samples_per_pixel: u32,
     max_depth: u32,
+    pub background_color: Option<Color>,
 }
 
 impl Camera {
@@ -75,6 +76,7 @@ impl Camera {
             defocus_disc_v,
             samples_per_pixel,
             max_depth,
+            background_color: None,
         }
     }
 
@@ -124,17 +126,27 @@ impl Camera {
         }
 
         if let Some(rec) = world.hit(ray, Interval(0.001, f64::INFINITY)) {
-            if let Some(ScatterResult { ray, attenuation }) = rec.material.scatter(ray, &rec) {
-                return attenuation * self.ray_color(&ray, depth + 1, world);
+            let emissive_color = rec.material.emit(rec.uv, rec.position);
+
+            if let Some(ScatterResult {
+                ray: scattered,
+                attenuation,
+            }) = rec.material.scatter(ray, &rec)
+            {
+                let scatter_color = attenuation * self.ray_color(&scattered, depth + 1, world);
+
+                scatter_color + emissive_color
             } else {
-                Color::new(0.0, 0.0, 0.0);
+                rec.material.emit(rec.uv, rec.position)
             }
+        } else {
+            self.background_color.unwrap_or_else(|| {
+                let unit_direction = ray.direction.normalize();
+                let a = 0.5 * (unit_direction.y() + 1.0);
+
+                (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+            })
         }
-
-        let unit_direction = ray.direction.normalize();
-        let a = 0.5 * (unit_direction.y() + 1.0);
-
-        (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
     }
 
     fn get_ray(&self, x: u32, y: u32) -> Ray {

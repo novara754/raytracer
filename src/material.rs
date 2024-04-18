@@ -3,9 +3,9 @@ use std::sync::Arc;
 use crate::{
     hittable::HitRecord,
     ray::Ray,
-    texture::{SolidColor, Texture},
+    texture::{SolidColor, TexCoord, Texture},
     util::{rand_f64, rand_unit_vec3, reflect, reflectance, refract},
-    vec3::Color,
+    vec3::{Color, Vec3},
 };
 
 pub struct ScatterResult {
@@ -15,6 +15,9 @@ pub struct ScatterResult {
 
 pub trait Material: Send + Sync {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult>;
+    fn emit(&self, uv: TexCoord, point: Vec3) -> Color {
+        Color::new(0.0, 0.0, 0.0)
+    }
 }
 
 pub struct Lambertian {
@@ -99,5 +102,27 @@ impl Material for Dialectric {
         let ray = Ray::new(rec.position, dir, ray.time);
 
         Some(ScatterResult { attenuation, ray })
+    }
+}
+
+pub struct DiffuseLight {
+    texture: Arc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn from_color(color: Color) -> Self {
+        Self {
+            texture: Arc::new(SolidColor { color }),
+        }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(&self, _ray: &Ray, _rec: &HitRecord) -> Option<ScatterResult> {
+        None
+    }
+
+    fn emit(&self, uv: TexCoord, point: Vec3) -> Color {
+        self.texture.sample(uv, point)
     }
 }
