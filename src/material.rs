@@ -25,12 +25,12 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, _ray: &Ray, rec: &HitRecord) -> Option<ScatterResult> {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult> {
         let mut dir = rec.normal + rand_unit_vec3();
         if dir.near_zero() {
             dir = rec.normal;
         }
-        let ray = Ray::new(rec.position, dir);
+        let ray = Ray::new(rec.position, dir, ray.time);
         let attenuation = self.albedo;
         Some(ScatterResult { ray, attenuation })
     }
@@ -51,7 +51,7 @@ impl Material for Metal {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult> {
         let dir = reflect(ray.direction.normalize(), rec.normal);
         let fuzzed_dir = dir + self.fuzziness * rand_unit_vec3();
-        let ray = Ray::new(rec.position, fuzzed_dir);
+        let ray = Ray::new(rec.position, fuzzed_dir, ray.time);
         let attenuation = self.albedo;
         Some(ScatterResult { ray, attenuation })
     }
@@ -87,7 +87,7 @@ impl Material for Dialectric {
         } else {
             refract(unit_dir, rec.normal, ratio)
         };
-        let ray = Ray::new(rec.position, dir);
+        let ray = Ray::new(rec.position, dir, ray.time);
 
         Some(ScatterResult { attenuation, ray })
     }

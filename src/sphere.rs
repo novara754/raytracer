@@ -9,29 +9,58 @@ use crate::vec3::Vec3;
 
 #[derive(Clone)]
 pub struct Sphere {
-    pub center: Vec3,
+    pub start_center: Vec3,
+    pub move_dir: Vec3,
     pub radius: f64,
     pub material: Arc<dyn Material>,
     bounding_box: Aabb,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64, material: Arc<dyn Material>) -> Self {
+    pub fn stationary(center: Vec3, radius: f64, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3(radius, radius, radius);
         let bounding_box = Aabb::span_points(center - r_vec, center + r_vec);
 
         Self {
-            center,
+            start_center: center,
+            move_dir: Vec3(0.0, 0.0, 0.0),
             radius,
             material,
             bounding_box,
         }
     }
+
+    pub fn moving(
+        start_center: Vec3,
+        end_center: Vec3,
+        radius: f64,
+        material: Arc<dyn Material>,
+    ) -> Self {
+        let r_vec = Vec3(radius, radius, radius);
+
+        let box1 = Aabb::span_points(start_center - r_vec, start_center + r_vec);
+        let box2 = Aabb::span_points(end_center - r_vec, end_center + r_vec);
+        let bounding_box = Aabb::combine(box1, box2);
+
+        Self {
+            start_center,
+            move_dir: end_center - start_center,
+            radius,
+            material,
+            bounding_box,
+        }
+    }
+
+    pub fn get_center(&self, time: f64) -> Vec3 {
+        self.start_center + self.move_dir * time
+    }
 }
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, allowed_t: Interval) -> Option<HitRecord> {
-        let oc = ray.origin - self.center;
+        let center = self.get_center(ray.time);
+
+        let oc = ray.origin - center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(ray.direction);
         let c = oc.length_squared() - self.radius * self.radius;
@@ -52,7 +81,7 @@ impl Hittable for Sphere {
         }
 
         let position = ray.at(root);
-        let outward_normal = (position - self.center) / self.radius;
+        let outward_normal = (position - center) / self.radius;
         Some(HitRecord::with_face_normal(
             *ray,
             root,

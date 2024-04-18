@@ -78,7 +78,7 @@ fn main() {
     let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
     let material_ground = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-    objects.push(Arc::new(Sphere::new(
+    objects.push(Arc::new(Sphere::stationary(
         Vec3(0.0, -1000.0, 0.0),
         1000.0,
         material_ground,
@@ -87,13 +87,13 @@ fn main() {
     for a in -11..11 {
         for b in -11..11 {
             let choose_mat = rand_f64(0.0, 1.0);
-            let center = Vec3(
+            let start_center = Vec3(
                 a as f64 + 0.9 * rand_f64(0.0, 1.0),
                 0.2,
                 b as f64 + 0.9 * rand_f64(0.0, 1.0),
             );
 
-            if (center - Vec3(4.0, 0.2, 0.0)).length() > 0.9 {
+            if (start_center - Vec3(4.0, 0.2, 0.0)).length() > 0.9 {
                 let mat: Arc<dyn Material> = if choose_mat < 0.8 {
                     let albedo = rand_vec3(0.0, 1.0) * rand_vec3(0.0, 1.0);
                     Arc::new(Lambertian::new(albedo))
@@ -105,19 +105,32 @@ fn main() {
                     Arc::new(Dialectric::new(1.5))
                 };
 
-                objects.push(Arc::new(Sphere::new(center, 0.2, mat)));
+                let end_center = start_center + Vec3(0.0, rand_f64(0.0, 0.5), 0.0);
+                objects.push(Arc::new(Sphere::moving(start_center, end_center, 0.2, mat)));
             }
         }
     }
 
     let material1 = Arc::new(Dialectric::new(1.5));
-    objects.push(Arc::new(Sphere::new(Vec3(0.0, 1.0, 0.0), 1.0, material1)));
+    objects.push(Arc::new(Sphere::stationary(
+        Vec3(0.0, 1.0, 0.0),
+        1.0,
+        material1,
+    )));
 
     let material2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    objects.push(Arc::new(Sphere::new(Vec3(-4.0, 1.0, 0.0), 1.0, material2)));
+    objects.push(Arc::new(Sphere::stationary(
+        Vec3(-4.0, 1.0, 0.0),
+        1.0,
+        material2,
+    )));
 
     let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
-    objects.push(Arc::new(Sphere::new(Vec3(4.0, 1.0, 0.0), 1.0, material3)));
+    objects.push(Arc::new(Sphere::stationary(
+        Vec3(4.0, 1.0, 0.0),
+        1.0,
+        material3,
+    )));
 
     let world = Bvh::new(objects.as_slice());
 

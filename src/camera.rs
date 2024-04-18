@@ -148,7 +148,9 @@ impl Camera {
 
         let ray_origin = self.defocus_disc_sample();
         let ray_direction = pixel_sample - ray_origin;
-        Ray::new(ray_origin, ray_direction)
+        let ray_time = random::<f64>();
+
+        Ray::new(ray_origin, ray_direction, ray_time)
     }
 
     fn defocus_disc_sample(&self) -> Vec3 {
