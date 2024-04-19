@@ -13,8 +13,8 @@ use crate::vec3::{Color, Vec3};
 
 pub struct Camera {
     eye: Vec3,
-    width: u32,
-    height: u32,
+    pub width: u32,
+    pub height: u32,
     pixel00_loc: Vec3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
@@ -22,8 +22,8 @@ pub struct Camera {
     defocus_disc_u: Vec3,
     defocus_disc_v: Vec3,
     samples_per_pixel: u32,
-    max_depth: u32,
-    pub background_color: Option<Color>,
+    max_bounces: u32,
+    background_color: Option<Color>,
 }
 
 impl Camera {
@@ -38,7 +38,8 @@ impl Camera {
         focus_dist: f64,
         defocus_angle: f64,
         samples_per_pixel: u32,
-        max_depth: u32,
+        max_bounces: u32,
+        background_color: Option<Color>,
     ) -> Self {
         let aspect_ratio = (width as f64) / (height as f64);
 
@@ -75,8 +76,8 @@ impl Camera {
             defocus_disc_u,
             defocus_disc_v,
             samples_per_pixel,
-            max_depth,
-            background_color: None,
+            max_bounces,
+            background_color,
         }
     }
 
@@ -121,7 +122,7 @@ impl Camera {
     }
 
     fn ray_color(&self, ray: &Ray, depth: u32, world: &dyn Hittable) -> Color {
-        if depth >= self.max_depth {
+        if depth >= self.max_bounces {
             return Color::new(0.0, 0.0, 0.0);
         }
 
