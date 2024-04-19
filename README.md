@@ -5,13 +5,23 @@ Multi-threaded CPU raytracer implemented in Rust following
 
 ![Sample image of many different spheres with different materials rendered in HD](./sample.png)
 
+![Render of the Cornell box scene with an emissive quad as light source](./cornell.png)
+
 ## Features
+ - Multiple primitives
+   - Spheres
+   - Quads
  - Different materials
    - Diffuse (Lambertion)
    - Metal
    - Glass (reflection & refraction)
+   - Emissive
+ - Textures
+   - Solid colors
+   - Sampled by UV or world coordinates
  - Multisampling / Antialiasing
  - Defocus blur (depth of field)
+ - Motion blur
  - Bounding Volume Hierarchies
  - Multithreading
 
@@ -59,8 +69,8 @@ It is also possible to use `cargo run` or `cargo run --release` to compile and r
 
 It is recommended to use the release build since it significantly speeds up the execution.
 
-The raytracer accepts a few command line arguments to change the behaviour, the following
-help output can be produced with `./raytracer_rs --help`:
+The raytracer accepts a few command line arguments to change the behaviour and to select the scene to render.
+The following help output can be produced with `./raytracer_rs --help`:
 ```
 Usage: raytracer_rs.exe [OPTIONS]
 
@@ -81,6 +91,8 @@ Options:
           Number of samples (rays) per pixel [default: 100]
       --max-bounces <MAX_BOUNCES>
           Maximum amount of times a ray can get hit and bounce from objects [default: 50]
+      --scene <SCENE>
+          Selects which scenes to render [default: bouncing-spheres] [possible values: bouncing-spheres, checkered-spheres, earth, quads, simple-light, bouncing-spheres-with-light, empty-cornell-box, cornell-box]
   -h, --help
           Print help
   -V, --version
