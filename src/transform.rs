@@ -11,11 +11,18 @@ use crate::{
 pub struct Translate {
     offset: Vec3,
     object: Arc<dyn Hittable>,
+    bounding_box: Aabb,
 }
 
 impl Translate {
     pub fn new(offset: Vec3, object: Arc<dyn Hittable>) -> Self {
-        Self { offset, object }
+        let bounding_box = object.bounding_box() + offset;
+
+        Self {
+            offset,
+            object,
+            bounding_box,
+        }
     }
 }
 
@@ -32,14 +39,17 @@ impl Hittable for Translate {
     }
 
     fn bounding_box(&self) -> Aabb {
-        self.object.bounding_box() + self.offset
+        self.bounding_box
     }
 }
 
 pub struct RotateY {
     angle: f64,
     object: Arc<dyn Hittable>,
-    bbox: Aabb,
+    bounding_box: Aabb,
+
+    cos_angle: f64,
+    sin_angle: f64,
 }
 
 impl RotateY {
@@ -72,7 +82,10 @@ impl RotateY {
         Self {
             angle,
             object,
-            bbox: Aabb::span_points(min, max),
+            bounding_box: Aabb::span_points(min, max),
+
+            cos_angle: angle.cos(),
+            sin_angle: angle.sin(),
         }
     }
 }
@@ -85,22 +98,20 @@ impl Hittable for RotateY {
             ..
         } = *ray;
 
-        origin[0] = self.angle.cos() * origin[0] - self.angle.sin() * origin[2];
-        origin[2] = self.angle.sin() * origin[0] + self.angle.cos() * origin[2];
+        origin[0] = self.cos_angle * origin[0] - self.sin_angle * origin[2];
+        origin[2] = self.sin_angle * origin[0] + self.cos_angle * origin[2];
 
-        direction[0] = self.angle.cos() * direction[0] - self.angle.sin() * direction[2];
-        direction[2] = self.angle.sin() * direction[0] + self.angle.cos() * direction[2];
+        direction[0] = self.cos_angle * direction[0] - self.sin_angle * direction[2];
+        direction[2] = self.sin_angle * direction[0] + self.cos_angle * direction[2];
 
         let rotated_ray = Ray::new(origin, direction, ray.time);
 
         if let Some(mut hit) = self.object.hit(&rotated_ray, allowed_t) {
-            hit.position[0] =
-                self.angle.cos() * hit.position[0] + self.angle.sin() * hit.position[2];
-            hit.position[2] =
-                -self.angle.sin() * hit.position[0] + self.angle.cos() * hit.position[2];
+            hit.position[0] = self.cos_angle * hit.position[0] + self.sin_angle * hit.position[2];
+            hit.position[2] = -self.sin_angle * hit.position[0] + self.cos_angle * hit.position[2];
 
-            hit.normal[0] = self.angle.cos() * hit.normal[0] + self.angle.sin() * hit.normal[2];
-            hit.normal[2] = -self.angle.sin() * hit.normal[0] + self.angle.cos() * hit.normal[2];
+            hit.normal[0] = self.cos_angle * hit.normal[0] + self.sin_angle * hit.normal[2];
+            hit.normal[2] = -self.sin_angle * hit.normal[0] + self.cos_angle * hit.normal[2];
 
             Some(hit)
         } else {
@@ -109,6 +120,6 @@ impl Hittable for RotateY {
     }
 
     fn bounding_box(&self) -> Aabb {
-        self.bbox
+        self.bounding_box
     }
 }
