@@ -3,8 +3,8 @@ use std::{cmp::Ordering, sync::Arc};
 use rand::Rng;
 
 use crate::{
-    aabb::Aabb,
-    hittable::{HitRecord, Hittable},
+    objects::aabb::Aabb,
+    objects::hittable::{HitRecord, Hittable},
     ray::Ray,
     util::Interval,
 };

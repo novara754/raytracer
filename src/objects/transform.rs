@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    aabb::Aabb,
-    hittable::{HitRecord, Hittable},
+    objects::aabb::Aabb,
+    objects::hittable::{HitRecord, Hittable},
     ray::Ray,
     util::Interval,
     vec3::Vec3,

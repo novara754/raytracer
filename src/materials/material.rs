@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    hittable::HitRecord,
+    materials::texture::{SolidColor, TexCoord, Texture},
+    objects::hittable::HitRecord,
     ray::Ray,
-    texture::{SolidColor, TexCoord, Texture},
     util::{rand_f64, rand_unit_vec3, reflect, reflectance, refract},
     vec3::{Color, Vec3},
 };

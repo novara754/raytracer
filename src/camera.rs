@@ -5,8 +5,8 @@ use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rand::random;
 use rayon::prelude::*;
 
-use crate::hittable::Hittable;
-use crate::material::ScatterResult;
+use crate::materials::material::ScatterResult;
+use crate::objects::hittable::Hittable;
 use crate::ray::Ray;
 use crate::util::{deg2rad, linear_to_gamma, rand_unit_disc_vec3, Interval};
 use crate::vec3::{Color, Vec3};

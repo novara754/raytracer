@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use crate::aabb::Aabb;
-use crate::material::Material;
+use crate::materials::material::Material;
+use crate::materials::texture::TexCoord;
+use crate::objects::aabb::Aabb;
 use crate::ray::Ray;
-use crate::texture::TexCoord;
 use crate::util::Interval;
 use crate::vec3::Vec3;
 

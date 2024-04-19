@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use crate::{
-    aabb::Aabb,
-    hittable::{HitRecord, Hittable},
-    material::Material,
+    materials::material::Material,
+    materials::texture::TexCoord,
+    objects::aabb::Aabb,
+    objects::hittable::{HitRecord, Hittable},
     ray::Ray,
-    texture::TexCoord,
     util::Interval,
     vec3::Vec3,
 };

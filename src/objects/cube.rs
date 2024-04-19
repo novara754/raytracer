@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use crate::{hittable::HittableList, material::Material, quad::Quad, vec3::Vec3};
+use crate::{
+    materials::material::Material, objects::hittable::HittableList, objects::quad::Quad, vec3::Vec3,
+};
 
 pub fn cube(a: Vec3, b: Vec3, material: Arc<dyn Material>) -> HittableList {
     let min = Vec3(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));

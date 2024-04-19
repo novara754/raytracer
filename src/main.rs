@@ -1,35 +1,29 @@
-use clap::Parser;
-use cube::cube;
-use image::{ImageFormat, RgbImage};
-use material::DiffuseLight;
-use quad::Quad;
 use std::path::PathBuf;
 use std::sync::Arc;
-use texture::ImageTexture;
-use transform::{RotateY, Translate};
+
+use clap::Parser;
+use image::{ImageFormat, RgbImage};
 
 use crate::{
-    bvh::Bvh,
     camera::Camera,
-    hittable::Hittable,
-    material::{Dialectric, Lambertian, Material, Metal},
-    sphere::Sphere,
-    texture::CheckerTexture,
+    materials::material::DiffuseLight,
+    materials::material::{Dialectric, Lambertian, Material, Metal},
+    materials::texture::CheckerTexture,
+    materials::texture::ImageTexture,
+    objects::bvh::Bvh,
+    objects::cube::cube,
+    objects::hittable::Hittable,
+    objects::quad::Quad,
+    objects::sphere::Sphere,
+    objects::transform::{RotateY, Translate},
     util::{rand_f64, rand_vec3},
     vec3::{Color, Vec3},
 };
 
-mod aabb;
-mod bvh;
 mod camera;
-mod cube;
-mod hittable;
-mod material;
-mod quad;
+mod materials;
+mod objects;
 mod ray;
-mod sphere;
-mod texture;
-mod transform;
 mod util;
 mod vec3;
 

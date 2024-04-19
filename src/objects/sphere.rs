@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use crate::aabb::Aabb;
-use crate::hittable::{HitRecord, Hittable};
-use crate::material::Material;
+use crate::materials::material::Material;
+use crate::materials::texture::TexCoord;
+use crate::objects::aabb::Aabb;
+use crate::objects::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
-use crate::texture::TexCoord;
 use crate::util::Interval;
 use crate::vec3::Vec3;
 
@@ -109,7 +109,7 @@ impl Hittable for Sphere {
 
 #[cfg(test)]
 mod tests {
-    use crate::{sphere::Sphere, texture::TexCoord, vec3::Vec3};
+    use crate::{materials::texture::TexCoord, objects::sphere::Sphere, vec3::Vec3};
 
     #[test]
     fn get_uv_for_point() {
