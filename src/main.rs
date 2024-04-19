@@ -6,6 +6,7 @@ use quad::Quad;
 use std::path::PathBuf;
 use std::sync::Arc;
 use texture::ImageTexture;
+use transform::{RotateY, Translate};
 
 use crate::{
     bvh::Bvh,
@@ -28,6 +29,7 @@ mod quad;
 mod ray;
 mod sphere;
 mod texture;
+mod transform;
 mod util;
 mod vec3;
 
@@ -509,7 +511,7 @@ fn cornell_box(args: &Args) -> (Camera, Bvh) {
     let red = Arc::new(Lambertian::from_color(Color::new(0.65, 0.05, 0.05)));
     let white = Arc::new(Lambertian::from_color(Color::new(0.73, 0.73, 0.73)));
     let green = Arc::new(Lambertian::from_color(Color::new(0.12, 0.45, 0.15)));
-    let light = Arc::new(DiffuseLight::from_color(Color::new(5.0, 5.0, 5.0)));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(15.0, 15.0, 15.0)));
 
     objects.push(Arc::new(Quad::new(
         Vec3(555.0, 0.0, 0.0),
@@ -523,16 +525,10 @@ fn cornell_box(args: &Args) -> (Camera, Bvh) {
         Vec3(0.0, 0.0, 555.0),
         red,
     )));
-    // objects.push(Arc::new(Quad::new(
-    //     Vec3(343.0, 554.0, 332.0),
-    //     Vec3(-130.0, 0.0, 0.0),
-    //     Vec3(0.0, 0.0, -105.0),
-    //     light,
-    // )));
     objects.push(Arc::new(Quad::new(
-        Vec3(500.0, 554.0, 500.0),
-        Vec3(-450.0, 0.0, 0.0),
-        Vec3(0.0, 0.0, -450.0),
+        Vec3(400.0, 554.0, 400.0),
+        Vec3(-(400.0 - 155.0), 0.0, 0.0),
+        Vec3(0.0, 0.0, -(400.0 - 155.0)),
         light,
     )));
     objects.push(Arc::new(Quad::new(
@@ -554,16 +550,27 @@ fn cornell_box(args: &Args) -> (Camera, Bvh) {
         white.clone(),
     )));
 
-    objects.push(Arc::new(cube(
-        Vec3(130.0, 0.0, 65.0),
-        Vec3(295.0, 165.0, 230.0),
-        white.clone(),
-    )));
-    objects.push(Arc::new(cube(
-        Vec3(265.0, 0.0, 295.0),
-        Vec3(430.0, 330.0, 460.0),
-        white.clone(),
-    )));
+    {
+        let cube = Arc::new(cube(
+            Vec3(0.0, 0.0, 0.0),
+            Vec3(165.0, 330.0, 165.0),
+            white.clone(),
+        ));
+        let cube = Arc::new(RotateY::new(15.0 / 180.0 * std::f64::consts::PI, cube));
+        let cube = Arc::new(Translate::new(Vec3(265.0, 0.0, 295.0), cube));
+        objects.push(cube);
+    }
+
+    {
+        let cube = Arc::new(cube(
+            Vec3(0.0, 0.0, 0.0),
+            Vec3(165.0, 165.0, 165.0),
+            white.clone(),
+        ));
+        let cube = Arc::new(RotateY::new(-18.0 / 180.0 * std::f64::consts::PI, cube));
+        let cube = Arc::new(Translate::new(Vec3(130.0, 0.0, 65.0), cube));
+        objects.push(cube);
+    }
 
     (camera, Bvh::new(objects.as_slice()))
 }

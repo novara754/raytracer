@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Div, Index, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub};
 
 use image::Rgb;
 
@@ -74,6 +74,17 @@ impl Index<usize> for Vec3 {
             0 => &self.0,
             1 => &self.1,
             2 => &self.2,
+            _ => panic!("invalid Vec3 index"),
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.0,
+            1 => &mut self.1,
+            2 => &mut self.2,
             _ => panic!("invalid Vec3 index"),
         }
     }

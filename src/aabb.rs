@@ -2,9 +2,9 @@ use crate::{ray::Ray, util::Interval, vec3::Vec3};
 
 #[derive(Clone, Copy)]
 pub struct Aabb {
-    x: Interval,
-    y: Interval,
-    z: Interval,
+    pub x: Interval,
+    pub y: Interval,
+    pub z: Interval,
 }
 
 impl Aabb {
@@ -81,5 +81,17 @@ impl Aabb {
         if self.z.size() < minimum {
             self.z.expand(minimum);
         }
+    }
+}
+
+impl std::ops::Add<Vec3> for Aabb {
+    type Output = Aabb;
+
+    fn add(mut self, rhs: Vec3) -> Self::Output {
+        self.x += rhs.x();
+        self.y += rhs.y();
+        self.z += rhs.z();
+
+        self
     }
 }

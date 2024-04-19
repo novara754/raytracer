@@ -49,6 +49,13 @@ impl Interval {
     }
 }
 
+impl std::ops::AddAssign<f64> for Interval {
+    fn add_assign(&mut self, rhs: f64) {
+        self.0 += rhs;
+        self.1 += rhs;
+    }
+}
+
 pub fn rand_f64(min: f64, max: f64) -> f64 {
     random::<f64>() * (max - min) + min
 }
