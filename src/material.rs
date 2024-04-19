@@ -15,7 +15,7 @@ pub struct ScatterResult {
 
 pub trait Material: Send + Sync {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult>;
-    fn emit(&self, uv: TexCoord, point: Vec3) -> Color {
+    fn emit(&self, _uv: TexCoord, _point: Vec3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 }

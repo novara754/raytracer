@@ -44,7 +44,6 @@ impl Hittable for Translate {
 }
 
 pub struct RotateY {
-    angle: f64,
     object: Arc<dyn Hittable>,
     bounding_box: Aabb,
 
@@ -80,7 +79,6 @@ impl RotateY {
         }
 
         Self {
-            angle,
             object,
             bounding_box: Aabb::span_points(min, max),
 

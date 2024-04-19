@@ -37,6 +37,7 @@ pub struct CheckerTexture {
 }
 
 impl CheckerTexture {
+    #[allow(unused)]
     pub fn new(scale: f64, even_texture: Arc<dyn Texture>, odd_texture: Arc<dyn Texture>) -> Self {
         Self {
             inv_scale: 1.0 / scale,
