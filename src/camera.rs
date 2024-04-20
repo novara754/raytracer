@@ -7,6 +7,7 @@ use rayon::prelude::*;
 
 use crate::materials::material::ScatterResult;
 use crate::objects::hittable::Hittable;
+use crate::objects::world::World;
 use crate::ray::Ray;
 use crate::util::{deg2rad, linear_to_gamma, rand_unit_disc_vec3, Interval};
 use crate::vec3::{Color, Vec3};
@@ -84,7 +85,7 @@ impl Camera {
     pub fn render_x_samples(
         &self,
         data: &mut [Color],
-        world: &dyn Hittable,
+        world: &World,
         num_samples: u32,
         num_previous_samples: u32,
     ) {
@@ -105,7 +106,7 @@ impl Camera {
             });
     }
 
-    pub fn render(&self, img: &mut RgbImage, world: &dyn Hittable) {
+    pub fn render(&self, img: &mut RgbImage, world: &World) {
         let start = Instant::now();
 
         let progress_bar_style =
@@ -145,24 +146,25 @@ impl Camera {
         eprintln!("Time elapsed (seconds): {}", (end - start).as_secs_f64());
     }
 
-    fn ray_color(&self, ray: &Ray, depth: u32, world: &dyn Hittable) -> Color {
+    fn ray_color(&self, ray: &Ray, depth: u32, world: &World) -> Color {
         if depth >= self.max_bounces {
             return Color::new(0.0, 0.0, 0.0);
         }
 
         if let Some(rec) = world.hit(ray, Interval(0.001, f64::INFINITY)) {
-            let emissive_color = rec.material.emit(rec.uv, rec.position);
+            let material = &world.materials[rec.material.0];
+            let emissive_color = material.emit(rec.uv, rec.position);
 
             if let Some(ScatterResult {
                 ray: scattered,
                 attenuation,
-            }) = rec.material.scatter(ray, &rec)
+            }) = material.scatter(ray, &rec)
             {
                 let scatter_color = attenuation * self.ray_color(&scattered, depth + 1, world);
 
                 scatter_color + emissive_color
             } else {
-                rec.material.emit(rec.uv, rec.position)
+                emissive_color
             }
         } else {
             self.background_color.unwrap_or_else(|| {

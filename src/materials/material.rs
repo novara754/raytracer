@@ -8,6 +8,9 @@ use crate::{
     vec3::{Color, Vec3},
 };
 
+#[derive(Debug, Clone, Copy)]
+pub struct MaterialRef(pub usize);
+
 pub struct ScatterResult {
     pub ray: Ray,
     pub attenuation: Color,

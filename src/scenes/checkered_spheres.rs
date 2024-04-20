@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     materials::{material::Lambertian, texture::CheckerTexture},
-    objects::{bvh::Bvh, hittable::Hittable, sphere::Sphere},
+    objects::{bvh::Bvh, hittable::Hittable, sphere::Sphere, world::World},
     vec3::{Color, Vec3},
 };
 
@@ -26,7 +26,9 @@ impl Scene for CheckeredSpheresScene {
         }
     }
 
-    fn world(&self) -> Bvh {
+    fn world(&self) -> World {
+        let mut world = World::new();
+
         let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
         let checker_texture = Arc::new(CheckerTexture::from_colors(
@@ -34,12 +36,12 @@ impl Scene for CheckeredSpheresScene {
             Color::new(0.2, 0.3, 0.1),
             Color::new(0.9, 0.9, 0.9),
         ));
-        let material = Arc::new(Lambertian::new(checker_texture));
+        let material = world.register_material(Box::new(Lambertian::new(checker_texture)));
 
         objects.push(Arc::new(Sphere::stationary(
             Vec3(0.0, -10.0, 0.0),
             10.0,
-            material.clone(),
+            material,
         )));
         objects.push(Arc::new(Sphere::stationary(
             Vec3(0.0, 10.0, 0.0),
@@ -47,6 +49,8 @@ impl Scene for CheckeredSpheresScene {
             material,
         )));
 
-        Bvh::new(objects.as_slice())
+        world.set_bvh(Bvh::new(objects.as_slice()));
+
+        world
     }
 }

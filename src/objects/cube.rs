@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
 use crate::{
-    materials::material::Material, objects::hittable::HittableList, objects::quad::Quad, vec3::Vec3,
+    materials::material::MaterialRef, objects::hittable::HittableList, objects::quad::Quad,
+    vec3::Vec3,
 };
 
-pub fn cube(a: Vec3, b: Vec3, material: Arc<dyn Material>) -> HittableList {
+pub fn cube(a: Vec3, b: Vec3, material: MaterialRef) -> HittableList {
     let min = Vec3(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
     let max = Vec3(a.x().max(b.x()), a.y().max(b.y()), a.z().max(b.z()));
 
@@ -14,39 +15,29 @@ pub fn cube(a: Vec3, b: Vec3, material: Arc<dyn Material>) -> HittableList {
 
     HittableList::from_slice(&[
         // front
-        Arc::new(Quad::new(
-            Vec3(min.x(), min.y(), max.z()),
-            dx,
-            dy,
-            material.clone(),
-        )),
+        Arc::new(Quad::new(Vec3(min.x(), min.y(), max.z()), dx, dy, material)),
         // right
         Arc::new(Quad::new(
             Vec3(max.x(), min.y(), max.z()),
             -dz,
             dy,
-            material.clone(),
+            material,
         )),
         // back
         Arc::new(Quad::new(
             Vec3(max.x(), min.y(), min.z()),
             -dx,
             dy,
-            material.clone(),
+            material,
         )),
         // left
-        Arc::new(Quad::new(
-            Vec3(min.x(), min.y(), min.z()),
-            dz,
-            dy,
-            material.clone(),
-        )),
+        Arc::new(Quad::new(Vec3(min.x(), min.y(), min.z()), dz, dy, material)),
         // top
         Arc::new(Quad::new(
             Vec3(min.x(), max.y(), max.z()),
             dx,
             -dz,
-            material.clone(),
+            material,
         )),
         // bottom
         Arc::new(Quad::new(Vec3(min.x(), min.y(), min.z()), dx, dz, material)),

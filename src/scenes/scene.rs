@@ -1,5 +1,5 @@
 use crate::{
-    objects::bvh::Bvh,
+    objects::world::World,
     vec3::{Color, Vec3},
 };
 
@@ -37,5 +37,5 @@ pub struct Settings {
 
 pub trait Scene {
     fn default_settings(&self) -> Settings;
-    fn world(&self) -> Bvh;
+    fn world(&self) -> World;
 }

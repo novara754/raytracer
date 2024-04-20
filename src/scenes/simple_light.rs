@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     materials::material::{DiffuseLight, Lambertian},
-    objects::{bvh::Bvh, hittable::Hittable, quad::Quad, sphere::Sphere},
+    objects::{bvh::Bvh, hittable::Hittable, quad::Quad, sphere::Sphere, world::World},
     vec3::{Color, Vec3},
 };
 
@@ -26,14 +26,17 @@ impl Scene for SimpleLightScene {
         }
     }
 
-    fn world(&self) -> Bvh {
+    fn world(&self) -> World {
+        let mut world = World::new();
+
         let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
-        let lambert = Arc::new(Lambertian::from_color(Color::new(1.0, 0.5, 0.5)));
+        let lambert =
+            world.register_material(Box::new(Lambertian::from_color(Color::new(1.0, 0.5, 0.5))));
         objects.push(Arc::new(Sphere::stationary(
             Vec3(0.0, -1000.0, 0.0),
             1000.0,
-            lambert.clone(),
+            lambert,
         )));
         objects.push(Arc::new(Sphere::stationary(
             Vec3(0.0, 2.0, 0.0),
@@ -41,7 +44,9 @@ impl Scene for SimpleLightScene {
             lambert,
         )));
 
-        let difflight = Arc::new(DiffuseLight::from_color(Color::new(4.0, 4.0, 4.0)));
+        let difflight = world.register_material(Box::new(DiffuseLight::from_color(Color::new(
+            4.0, 4.0, 4.0,
+        ))));
         objects.push(Arc::new(Quad::new(
             Vec3(3.0, 1.0, -2.0),
             Vec3(2.0, 0.0, 0.0),
@@ -49,6 +54,8 @@ impl Scene for SimpleLightScene {
             difflight,
         )));
 
-        Bvh::new(objects.as_slice())
+        world.set_bvh(Bvh::new(objects.as_slice()));
+
+        world
     }
 }

@@ -1,10 +1,9 @@
-use std::sync::Arc;
-
 use crate::{
-    materials::material::Material,
-    materials::texture::TexCoord,
-    objects::aabb::Aabb,
-    objects::hittable::{HitRecord, Hittable},
+    materials::{material::MaterialRef, texture::TexCoord},
+    objects::{
+        aabb::Aabb,
+        hittable::{HitRecord, Hittable},
+    },
     ray::Ray,
     util::Interval,
     vec3::Vec3,
@@ -14,7 +13,7 @@ pub struct Quad {
     pub starting_corner: Vec3,
     pub u: Vec3,
     pub v: Vec3,
-    pub material: Arc<dyn Material>,
+    pub material: MaterialRef,
 
     normal: Vec3,
     w: Vec3,
@@ -24,7 +23,7 @@ pub struct Quad {
 }
 
 impl Quad {
-    pub fn new(starting_corner: Vec3, u: Vec3, v: Vec3, material: Arc<dyn Material>) -> Self {
+    pub fn new(starting_corner: Vec3, u: Vec3, v: Vec3, material: MaterialRef) -> Self {
         let box1 = Aabb::span_points(starting_corner, starting_corner + u + v);
         let box2 = Aabb::span_points(starting_corner + u, starting_corner + v);
         let bbox = Aabb::combine(box1, box2);
@@ -84,7 +83,7 @@ impl Hittable for Quad {
             intersection,
             TexCoord::new(alpha, beta),
             self.normal,
-            self.material.clone(),
+            self.material,
         ))
     }
 }

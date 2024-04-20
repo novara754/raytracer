@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     materials::{material::Lambertian, texture::ImageTexture},
-    objects::{bvh::Bvh, hittable::Hittable, sphere::Sphere},
+    objects::{bvh::Bvh, hittable::Hittable, sphere::Sphere, world::World},
     vec3::Vec3,
 };
 
@@ -26,19 +26,23 @@ impl Scene for EarthScene {
         }
     }
 
-    fn world(&self) -> Bvh {
+    fn world(&self) -> World {
+        let mut world = World::new();
+
         let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
         let earthmap = image::open("./assets/earthmap.jpg").unwrap().into_rgb8();
         let img_texture = Arc::new(ImageTexture::new(earthmap));
-        let material = Arc::new(Lambertian::new(img_texture));
+        let material = world.register_material(Box::new(Lambertian::new(img_texture)));
 
         objects.push(Arc::new(Sphere::stationary(
             Vec3(0.0, 0.0, 0.0),
             2.0,
-            material.clone(),
+            material,
         )));
 
-        Bvh::new(objects.as_slice())
+        world.set_bvh(Bvh::new(objects.as_slice()));
+
+        world
     }
 }

@@ -8,6 +8,7 @@ use crate::{
         hittable::Hittable,
         quad::Quad,
         transform::{RotateY, Translate},
+        world::World,
     },
     vec3::{Color, Vec3},
 };
@@ -32,13 +33,23 @@ impl Scene for CornellBoxScene {
         }
     }
 
-    fn world(&self) -> Bvh {
+    fn world(&self) -> World {
+        let mut world = World::new();
+
         let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
-        let red = Arc::new(Lambertian::from_color(Color::new(0.65, 0.05, 0.05)));
-        let white = Arc::new(Lambertian::from_color(Color::new(0.73, 0.73, 0.73)));
-        let green = Arc::new(Lambertian::from_color(Color::new(0.12, 0.45, 0.15)));
-        let light = Arc::new(DiffuseLight::from_color(Color::new(15.0, 15.0, 15.0)));
+        let red = world.register_material(Box::new(Lambertian::from_color(Color::new(
+            0.65, 0.05, 0.05,
+        ))));
+        let white = world.register_material(Box::new(Lambertian::from_color(Color::new(
+            0.73, 0.73, 0.73,
+        ))));
+        let green = world.register_material(Box::new(Lambertian::from_color(Color::new(
+            0.12, 0.45, 0.15,
+        ))));
+        let light = world.register_material(Box::new(DiffuseLight::from_color(Color::new(
+            15.0, 15.0, 15.0,
+        ))));
 
         objects.push(Arc::new(Quad::new(
             Vec3(555.0, 0.0, 0.0),
@@ -62,43 +73,37 @@ impl Scene for CornellBoxScene {
             Vec3(0.0, 0.0, 0.0),
             Vec3(555.0, 0.0, 0.0),
             Vec3(0.0, 0.0, 555.0),
-            white.clone(),
+            white,
         )));
         objects.push(Arc::new(Quad::new(
             Vec3(555.0, 555.0, 555.0),
             Vec3(-555.0, 0.0, 0.0),
             Vec3(0.0, 0.0, -555.0),
-            white.clone(),
+            white,
         )));
         objects.push(Arc::new(Quad::new(
             Vec3(0.0, 0.0, 555.0),
             Vec3(555.0, 0.0, 0.0),
             Vec3(0.0, 555.0, 0.0),
-            white.clone(),
+            white,
         )));
 
         {
-            let cube = Arc::new(cube(
-                Vec3(0.0, 0.0, 0.0),
-                Vec3(165.0, 330.0, 165.0),
-                white.clone(),
-            ));
+            let cube = Arc::new(cube(Vec3(0.0, 0.0, 0.0), Vec3(165.0, 330.0, 165.0), white));
             let cube = Arc::new(RotateY::new(15.0 / 180.0 * std::f64::consts::PI, cube));
             let cube = Arc::new(Translate::new(Vec3(265.0, 0.0, 295.0), cube));
             objects.push(cube);
         }
 
         {
-            let cube = Arc::new(cube(
-                Vec3(0.0, 0.0, 0.0),
-                Vec3(165.0, 165.0, 165.0),
-                white.clone(),
-            ));
+            let cube = Arc::new(cube(Vec3(0.0, 0.0, 0.0), Vec3(165.0, 165.0, 165.0), white));
             let cube = Arc::new(RotateY::new(-18.0 / 180.0 * std::f64::consts::PI, cube));
             let cube = Arc::new(Translate::new(Vec3(130.0, 0.0, 65.0), cube));
             objects.push(cube);
         }
 
-        Bvh::new(objects.as_slice())
+        world.set_bvh(Bvh::new(objects.as_slice()));
+
+        world
     }
 }

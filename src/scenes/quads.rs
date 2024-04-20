@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     materials::material::Lambertian,
-    objects::{bvh::Bvh, hittable::Hittable, quad::Quad},
+    objects::{bvh::Bvh, hittable::Hittable, quad::Quad, world::World},
     vec3::{Color, Vec3},
 };
 
@@ -26,14 +26,21 @@ impl Scene for QuadsScene {
         }
     }
 
-    fn world(&self) -> Bvh {
+    fn world(&self) -> World {
+        let mut world = World::new();
+
         let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
-        let red = Arc::new(Lambertian::from_color(Color::new(1.0, 0.2, 0.2)));
-        let green = Arc::new(Lambertian::from_color(Color::new(0.2, 1.0, 0.2)));
-        let blue = Arc::new(Lambertian::from_color(Color::new(0.2, 0.2, 1.0)));
-        let orange = Arc::new(Lambertian::from_color(Color::new(1.0, 0.5, 0.0)));
-        let teal = Arc::new(Lambertian::from_color(Color::new(0.2, 0.8, 0.8)));
+        let red =
+            world.register_material(Box::new(Lambertian::from_color(Color::new(1.0, 0.2, 0.2))));
+        let green =
+            world.register_material(Box::new(Lambertian::from_color(Color::new(0.2, 1.0, 0.2))));
+        let blue =
+            world.register_material(Box::new(Lambertian::from_color(Color::new(0.2, 0.2, 1.0))));
+        let orange =
+            world.register_material(Box::new(Lambertian::from_color(Color::new(1.0, 0.5, 0.0))));
+        let teal =
+            world.register_material(Box::new(Lambertian::from_color(Color::new(0.2, 0.8, 0.8))));
 
         objects.push(Arc::new(Quad::new(
             Vec3(-3.0, -2.0, 5.0),
@@ -66,6 +73,8 @@ impl Scene for QuadsScene {
             teal,
         )));
 
-        Bvh::new(objects.as_slice())
+        world.set_bvh(Bvh::new(objects.as_slice()));
+
+        world
     }
 }

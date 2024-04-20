@@ -5,3 +5,4 @@ pub mod hittable;
 pub mod quad;
 pub mod sphere;
 pub mod transform;
+pub mod world;

@@ -17,6 +17,11 @@ pub struct Bvh {
 
 impl Bvh {
     pub fn new(objects: &[Arc<dyn Hittable>]) -> Self {
+        assert!(
+            !objects.is_empty(),
+            "cannot create BVH from empty list of objects"
+        );
+
         let mut objects = objects.to_vec();
 
         let axis = rand::thread_rng().gen_range(0..=2);

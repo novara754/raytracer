@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::materials::material::Material;
+use crate::materials::material::MaterialRef;
 use crate::materials::texture::TexCoord;
 use crate::objects::aabb::Aabb;
 use crate::ray::Ray;
@@ -14,7 +14,7 @@ pub struct HitRecord {
     pub t: f64,
     pub uv: TexCoord,
     pub front_face: bool,
-    pub material: Arc<dyn Material>,
+    pub material: MaterialRef,
 }
 
 impl HitRecord {
@@ -24,7 +24,7 @@ impl HitRecord {
         position: Vec3,
         uv: TexCoord,
         outward_normal: Vec3,
-        material: Arc<dyn Material>,
+        material: MaterialRef,
     ) -> Self {
         let front_face = ray.direction.dot(outward_normal) < 0.0;
         Self {

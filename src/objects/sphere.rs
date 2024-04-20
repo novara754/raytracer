@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use crate::materials::material::Material;
+use crate::materials::material::MaterialRef;
 use crate::materials::texture::TexCoord;
 use crate::objects::aabb::Aabb;
 use crate::objects::hittable::{HitRecord, Hittable};
@@ -13,12 +11,12 @@ pub struct Sphere {
     pub start_center: Vec3,
     pub move_dir: Vec3,
     pub radius: f64,
-    pub material: Arc<dyn Material>,
+    pub material: MaterialRef,
     bounding_box: Aabb,
 }
 
 impl Sphere {
-    pub fn stationary(center: Vec3, radius: f64, material: Arc<dyn Material>) -> Self {
+    pub fn stationary(center: Vec3, radius: f64, material: MaterialRef) -> Self {
         let r_vec = Vec3(radius, radius, radius);
         let bounding_box = Aabb::span_points(center - r_vec, center + r_vec);
 
@@ -35,7 +33,7 @@ impl Sphere {
         start_center: Vec3,
         end_center: Vec3,
         radius: f64,
-        material: Arc<dyn Material>,
+        material: MaterialRef,
     ) -> Self {
         let r_vec = Vec3(radius, radius, radius);
 
@@ -98,7 +96,7 @@ impl Hittable for Sphere {
             position,
             Sphere::get_uv_for_point(outward_normal),
             outward_normal,
-            self.material.clone(),
+            self.material,
         ))
     }
 

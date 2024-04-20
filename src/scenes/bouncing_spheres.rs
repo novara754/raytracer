@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use crate::{
     materials::{
-        material::{Dialectric, Lambertian, Material, Metal},
+        material::{Dialectric, Lambertian, Metal},
         texture::CheckerTexture,
     },
-    objects::{bvh::Bvh, hittable::Hittable, sphere::Sphere},
+    objects::{bvh::Bvh, hittable::Hittable, sphere::Sphere, world::World},
     util::{rand_f64, rand_vec3},
     vec3::{Color, Vec3},
 };
@@ -30,7 +30,9 @@ impl Scene for BouncingSpheresScene {
         }
     }
 
-    fn world(&self) -> Bvh {
+    fn world(&self) -> World {
+        let mut world = World::new();
+
         let mut objects: Vec<Arc<dyn Hittable>> = vec![];
 
         let checker_texture = Arc::new(CheckerTexture::from_colors(
@@ -38,7 +40,7 @@ impl Scene for BouncingSpheresScene {
             Color::new(0.2, 0.3, 0.1),
             Color::new(0.9, 0.9, 0.9),
         ));
-        let material_ground = Arc::new(Lambertian::new(checker_texture));
+        let material_ground = world.register_material(Box::new(Lambertian::new(checker_texture)));
         objects.push(Arc::new(Sphere::stationary(
             Vec3(0.0, -1000.0, 0.0),
             1000.0,
@@ -55,15 +57,15 @@ impl Scene for BouncingSpheresScene {
                 );
 
                 if (start_center - Vec3(4.0, 0.2, 0.0)).length() > 0.9 {
-                    let mat: Arc<dyn Material> = if choose_mat < 0.8 {
+                    let mat = if choose_mat < 0.8 {
                         let albedo = rand_vec3(0.0, 1.0) * rand_vec3(0.0, 1.0);
-                        Arc::new(Lambertian::from_color(albedo))
+                        world.register_material(Box::new(Lambertian::from_color(albedo)))
                     } else if choose_mat < 0.95 {
                         let albedo = rand_vec3(0.5, 1.0);
                         let fuzz = rand_f64(0.0, 0.5);
-                        Arc::new(Metal::new(albedo, fuzz))
+                        world.register_material(Box::new(Metal::new(albedo, fuzz)))
                     } else {
-                        Arc::new(Dialectric::new(1.5))
+                        world.register_material(Box::new(Dialectric::new(1.5)))
                     };
 
                     let end_center = start_center + Vec3(0.0, rand_f64(0.0, 0.5), 0.0);
@@ -72,27 +74,31 @@ impl Scene for BouncingSpheresScene {
             }
         }
 
-        let material1 = Arc::new(Dialectric::new(1.5));
+        let material1 = world.register_material(Box::new(Dialectric::new(1.5)));
         objects.push(Arc::new(Sphere::stationary(
             Vec3(0.0, 1.0, 0.0),
             1.0,
             material1,
         )));
 
-        let material2 = Arc::new(Lambertian::from_color(Color::new(0.4, 0.2, 0.1)));
+        let material2 =
+            world.register_material(Box::new(Lambertian::from_color(Color::new(0.4, 0.2, 0.1))));
         objects.push(Arc::new(Sphere::stationary(
             Vec3(-4.0, 1.0, 0.0),
             1.0,
             material2,
         )));
 
-        let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+        let material3 =
+            world.register_material(Box::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0)));
         objects.push(Arc::new(Sphere::stationary(
             Vec3(4.0, 1.0, 0.0),
             1.0,
             material3,
         )));
 
-        Bvh::new(objects.as_slice())
+        world.set_bvh(Bvh::new(objects.as_slice()));
+
+        world
     }
 }
