@@ -3,6 +3,9 @@ use std::path::PathBuf;
 use camera::Camera;
 use clap::Parser;
 use image::{ImageFormat, RgbImage};
+use sdl2::{event::Event, pixels::PixelFormatEnum};
+use util::linear_to_gamma;
+use vec3::Color;
 
 use crate::vec3::Vec3;
 
@@ -44,6 +47,9 @@ impl std::fmt::Display for Scene {
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
+    #[clap(short, long, default_value_t = false)]
+    live_window: bool,
+
     /// Name of the output image.
     #[clap(short, long, default_value = "out.png")]
     output_filename: PathBuf,
@@ -99,9 +105,12 @@ fn main() {
 
     let default_settings = scene.default_settings();
 
+    let width = args.width.unwrap_or(default_settings.width);
+    let height = args.height.unwrap_or(default_settings.height);
+
     let camera = Camera::new(
-        args.width.unwrap_or(default_settings.width),
-        args.height.unwrap_or(default_settings.height),
+        width,
+        height,
         default_settings.camera_eye,
         default_settings.camera_target,
         Vec3(0.0, 1.0, 0.0),
@@ -116,8 +125,82 @@ fn main() {
 
     let world = scene.world();
 
-    let mut img = RgbImage::new(camera.width, camera.height);
-    camera.render(&mut img, &world);
-    img.save_with_format(args.output_filename, ImageFormat::Png)
-        .expect("failed to save output image");
+    if args.live_window {
+        let sdl_context = sdl2::init().unwrap();
+        let video_subsystem = sdl_context.video().unwrap();
+        let window = video_subsystem
+            .window("raytracer", width, height)
+            .position_centered()
+            .build()
+            .unwrap();
+
+        let mut canvas = window.into_canvas().build().unwrap();
+        let texture_creator = canvas.texture_creator();
+        let mut render_target = texture_creator
+            .create_texture_streaming(PixelFormatEnum::RGB24, width, height)
+            .unwrap();
+
+        let (tx, rx) = std::sync::mpsc::channel::<(u32, Vec<u8>)>();
+        std::thread::spawn(move || {
+            let samples_per_iteration = 10;
+            let mut num_total_samples = 0;
+
+            let mut linear_color_data =
+                vec![Color::new(0.0, 0.0, 0.0); width as usize * height as usize];
+            let mut srgb_color_data = vec![0u8; linear_color_data.len() * 3];
+
+            loop {
+                camera.render_x_samples(
+                    &mut linear_color_data,
+                    &world,
+                    samples_per_iteration,
+                    num_total_samples,
+                );
+
+                num_total_samples += samples_per_iteration;
+
+                for (srgb, linear) in srgb_color_data.chunks_mut(3).zip(linear_color_data.iter()) {
+                    let non_linear = linear_to_gamma(*linear);
+                    srgb[0] = (non_linear.0 * 255.0) as u8;
+                    srgb[1] = (non_linear.1 * 255.0) as u8;
+                    srgb[2] = (non_linear.2 * 255.0) as u8;
+                }
+
+                tx.send((num_total_samples, srgb_color_data.clone()))
+                    .unwrap();
+            }
+        });
+
+        let mut event_loop = sdl_context.event_pump().unwrap();
+        'main_loop: loop {
+            for event in event_loop.poll_iter() {
+                if let Event::Quit { .. } = event {
+                    break 'main_loop;
+                }
+            }
+
+            if let Ok((num_total_samples, srgb_color_data)) = rx.try_recv() {
+                render_target
+                    .update(None, &srgb_color_data, 3 * width as usize)
+                    .unwrap();
+
+                canvas
+                    .window_mut()
+                    .set_title(&format!(
+                        "Scene: {} -- Total Number of Samples per Pixel: {}",
+                        args.scene, num_total_samples
+                    ))
+                    .unwrap();
+            }
+
+            canvas.copy(&render_target, None, None).unwrap();
+
+            canvas.present();
+        }
+    } else {
+        let mut img = RgbImage::new(camera.width, camera.height);
+        camera.render(&mut img, &world);
+        img.save_with_format(args.output_filename, ImageFormat::Png)
+            .expect("failed to save output image");
+    }
 }

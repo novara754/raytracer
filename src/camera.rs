@@ -81,6 +81,30 @@ impl Camera {
         }
     }
 
+    pub fn render_x_samples(
+        &self,
+        data: &mut [Color],
+        world: &dyn Hittable,
+        num_samples: u32,
+        num_previous_samples: u32,
+    ) {
+        data.par_chunks_mut(self.width as usize)
+            .enumerate()
+            .for_each(|(row, pixel_row)| {
+                pixel_row
+                    .par_iter_mut()
+                    .enumerate()
+                    .for_each(move |(col, pixel)| {
+                        *pixel *= num_previous_samples as f64;
+                        for _ in 0..num_samples {
+                            let ray = self.get_ray(col as u32, row as u32);
+                            *pixel += self.ray_color(&ray, 0, world);
+                        }
+                        *pixel /= num_previous_samples as f64 + num_samples as f64;
+                    })
+            });
+    }
+
     pub fn render(&self, img: &mut RgbImage, world: &dyn Hittable) {
         let start = Instant::now();
 

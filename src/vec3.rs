@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 use image::Rgb;
 
@@ -136,6 +136,12 @@ impl Mul<f64> for Vec3 {
     }
 }
 
+impl MulAssign<f64> for Vec3 {
+    fn mul_assign(&mut self, rhs: f64) {
+        *self = *self * rhs;
+    }
+}
+
 impl Mul<Vec3> for f64 {
     type Output = Vec3;
 
@@ -149,6 +155,12 @@ impl Div<f64> for Vec3 {
 
     fn div(self, rhs: f64) -> Self::Output {
         Vec3(self.0 / rhs, self.1 / rhs, self.2 / rhs)
+    }
+}
+
+impl DivAssign<f64> for Vec3 {
+    fn div_assign(&mut self, rhs: f64) {
+        *self = *self / rhs;
     }
 }
 

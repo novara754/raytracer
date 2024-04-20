@@ -9,3 +9,4 @@ image = { version = "0.24.8", features = ["png", "jpeg"] }
 indicatif = { version = "0.17.7", features = ["rayon"] }
 rand = "0.8.5"
 rayon = "1.8.0"
+sdl2 = "0.36"
