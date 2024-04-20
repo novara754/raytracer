@@ -17,7 +17,7 @@ impl Scene for EmptyCornellBoxScene {
             camera_target: Vec3(278.0, 278.0, 0.0),
             width: 720,
             height: 720,
-            fov: 40.0,
+            fov: 38.0,
             focus_distance: 10.0,
             defocus_angle: 0.0,
             samples: 500,
