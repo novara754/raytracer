@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use camera::Camera;
 use clap::Parser;
-use image::{ImageFormat, RgbImage};
+use image::ImageFormat;
 use sdl2::{event::Event, pixels::PixelFormatEnum};
 use util::linear_to_gamma;
 use vec3::Color;
@@ -198,8 +198,7 @@ fn main() {
             canvas.present();
         }
     } else {
-        let mut img = RgbImage::new(camera.width, camera.height);
-        camera.render(&mut img, &world);
+        let img = camera.render(&world);
         img.save_with_format(args.output_filename, ImageFormat::Png)
             .expect("failed to save output image");
     }

@@ -106,44 +106,34 @@ impl Camera {
             });
     }
 
-    pub fn render(&self, img: &mut RgbImage, world: &World) {
+    pub fn render(&self, world: &World) -> RgbImage {
         let start = Instant::now();
 
         let progress_bar_style =
             ProgressStyle::with_template("[{elapsed_precise}] [{wide_bar:.}] {pos}/{len} ({eta})")
                 .unwrap();
 
-        let pixel_rows: Vec<_> = (0..self.height)
-            .into_par_iter()
+        let mut img = RgbImage::new(self.width, self.height);
+
+        img.par_enumerate_pixels_mut()
             .progress_with_style(progress_bar_style)
-            .map(|row| {
-                let pixel_row: Vec<_> = (0..self.width)
-                    .into_par_iter()
-                    .map(|col| {
-                        let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                        for _ in 0..self.samples_per_pixel {
-                            let ray = self.get_ray(col, row);
-                            pixel_color += self.ray_color(&ray, 0, world);
-                        }
-                        let pixel_color = pixel_color / (self.samples_per_pixel as f64);
-                        linear_to_gamma(pixel_color)
-                    })
-                    .collect();
+            .for_each(|(col, row, pixel)| {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                for _ in 0..self.samples_per_pixel {
+                    let ray = self.get_ray(col, row);
+                    pixel_color += self.ray_color(&ray, 0, world);
+                }
+                pixel_color /= self.samples_per_pixel as f64;
+                pixel_color = linear_to_gamma(pixel_color);
 
-                pixel_row
-            })
-            .collect();
-
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let pixel_color = pixel_rows[y as usize][x as usize];
-                img.put_pixel(x, y, pixel_color.into());
-            }
-        }
+                *pixel = pixel_color.into();
+            });
 
         let end = Instant::now();
 
         eprintln!("Time elapsed (seconds): {}", (end - start).as_secs_f64());
+
+        img
     }
 
     fn ray_color(&self, ray: &Ray, depth: u32, world: &World) -> Color {
