@@ -28,6 +28,7 @@ enum Scene {
     EmptyCornellBox,
     CornellBox,
     CornellSmoke,
+    Everything,
 }
 
 impl std::fmt::Display for Scene {
@@ -42,6 +43,7 @@ impl std::fmt::Display for Scene {
             Scene::EmptyCornellBox => write!(f, "empty-cornell-box"),
             Scene::CornellBox => write!(f, "cornell-box"),
             Scene::CornellSmoke => write!(f, "cornell-smoke"),
+            Scene::Everything => write!(f, "everything"),
         }
     }
 }
@@ -104,6 +106,7 @@ fn main() {
         Scene::EmptyCornellBox => &scenes::empty_cornell_box::EmptyCornellBoxScene,
         Scene::CornellBox => &scenes::cornell_box::CornellBoxScene,
         Scene::CornellSmoke => &scenes::cornell_smoke::CornellSmokeScene,
+        Scene::Everything => &scenes::everything::EverythingScene,
     };
 
     let default_settings = scene.default_settings();

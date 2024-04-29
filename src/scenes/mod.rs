@@ -5,6 +5,7 @@ pub mod cornell_box;
 pub mod cornell_smoke;
 pub mod earth;
 pub mod empty_cornell_box;
+pub mod everything;
 pub mod quads;
 pub mod scene;
 pub mod simple_light;
