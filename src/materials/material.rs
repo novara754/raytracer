@@ -129,3 +129,26 @@ impl Material for DiffuseLight {
         self.texture.sample(uv, point)
     }
 }
+
+pub struct Isotropic {
+    texture: Arc<dyn Texture>,
+}
+
+impl Isotropic {
+    pub fn from_color(color: Color) -> Self {
+        Self {
+            texture: Arc::new(SolidColor { color }),
+        }
+    }
+}
+
+impl Material for Isotropic {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<ScatterResult> {
+        let scattered = Ray::new(rec.position, rand_unit_vec3(), ray.time);
+        let attenuation = self.texture.sample(rec.uv, rec.position);
+        Some(ScatterResult {
+            ray: scattered,
+            attenuation,
+        })
+    }
+}

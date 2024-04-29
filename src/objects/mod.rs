@@ -1,5 +1,6 @@
 pub mod aabb;
 pub mod bvh;
+pub mod constant_volume;
 pub mod cube;
 pub mod hittable;
 pub mod quad;

@@ -27,6 +27,7 @@ enum Scene {
     BouncingSpheresWithLight,
     EmptyCornellBox,
     CornellBox,
+    CornellSmoke,
 }
 
 impl std::fmt::Display for Scene {
@@ -40,6 +41,7 @@ impl std::fmt::Display for Scene {
             Scene::BouncingSpheresWithLight => write!(f, "bouncing-spheres-with-light"),
             Scene::EmptyCornellBox => write!(f, "empty-cornell-box"),
             Scene::CornellBox => write!(f, "cornell-box"),
+            Scene::CornellSmoke => write!(f, "cornell-smoke"),
         }
     }
 }
@@ -101,6 +103,7 @@ fn main() {
         }
         Scene::EmptyCornellBox => &scenes::empty_cornell_box::EmptyCornellBoxScene,
         Scene::CornellBox => &scenes::cornell_box::CornellBoxScene,
+        Scene::CornellSmoke => &scenes::cornell_smoke::CornellSmokeScene,
     };
 
     let default_settings = scene.default_settings();
