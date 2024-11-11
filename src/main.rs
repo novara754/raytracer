@@ -3,8 +3,13 @@ use std::path::PathBuf;
 use camera::Camera;
 use clap::Parser;
 use image::ImageFormat;
+
+use objects::world::World;
+#[cfg(feature = "sdl")]
 use sdl2::{event::Event, pixels::PixelFormatEnum};
+#[cfg(feature = "sdl")]
 use util::linear_to_gamma;
+#[cfg(feature = "sdl")]
 use vec3::Color;
 
 use crate::vec3::Vec3;
@@ -51,6 +56,7 @@ impl std::fmt::Display for Scene {
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
+    #[cfg(feature = "sdl")]
     #[clap(short, long, default_value_t = false)]
     live_window: bool,
 
@@ -131,6 +137,7 @@ fn main() {
 
     let world = scene.world();
 
+    #[cfg(feature = "sdl")]
     if args.live_window {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
@@ -204,8 +211,15 @@ fn main() {
             canvas.present();
         }
     } else {
-        let img = camera.render(&world);
-        img.save_with_format(args.output_filename, ImageFormat::Png)
-            .expect("failed to save output image");
+        render_to_image(args, camera, world);
     }
+
+    #[cfg(not(feature = "sdl"))]
+    render_to_image(args, camera, world);
+}
+
+fn render_to_image(args: Args, camera: Camera, world: World) {
+    let img = camera.render(&world);
+    img.save_with_format(args.output_filename, ImageFormat::Png)
+        .expect("failed to save output image");
 }

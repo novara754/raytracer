@@ -82,6 +82,7 @@ impl Camera {
         }
     }
 
+    #[allow(unused)]
     pub fn render_x_samples(
         &self,
         data: &mut [Color],
