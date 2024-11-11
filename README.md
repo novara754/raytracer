@@ -59,7 +59,11 @@ before running the program.
 
 ## Usage
 
-**Note:** To compile this project please install the [Rust compiler](https://rust-lang.org/).
+> [!TIP]
+> A pre-built binary for 64-bit Windows can be found in the releases section on the GitHub page.
+
+> [!NOTE]  
+> To compile this project please install the [Rust compiler](https://rust-lang.org/).
 
 For a debug build run `cargo build` in the project directory. For an optimized release
 build please run `cargo build --release`.
